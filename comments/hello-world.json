@@ -8,18 +8,6 @@
       "createdAt": 1792598697653,
       "pinned": false,
       "hidden": false
-    },
-    {
-      "id": "c_1792600677922_9fyj",
-      "author": "panel-tester",
-      "content": "这句话有点含糊，你猜我想说什么",
-      "createdAt": 1792600677922,
-      "pinned": false,
-      "hidden": false,
-      "status": "visible",
-      "deviceId": "eeee0000eeee0000eeee0000eeee0001",
-      "ipHash": "12ca17b4",
-      "reviewReason": "语义含糊"
     }
   ]
 }
