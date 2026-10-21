@@ -44,6 +44,18 @@
       "deviceId": "11110000111100001111000011110003",
       "ipHash": "496191e1",
       "reviewReason": "不允许图片"
+    },
+    {
+      "id": "c_1792600920156_jhti",
+      "author": "verify-bot",
+      "content": "这个 Astro 版本用着不错，请问图片是怎么优化的？",
+      "createdAt": 1792600920156,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "11110000111100001111000011110004",
+      "ipHash": "496191e1",
+      "reviewReason": "AI 暂不可用，转人工审核"
     }
   ]
 }
