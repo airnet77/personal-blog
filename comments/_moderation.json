@@ -3,10 +3,10 @@
   "devices": {
     "aaaa0000aaaa0000aaaa0000aaaa0001": {
       "firstSeen": 1792600120950,
-      "lastSeen": 1792600120950,
-      "total": 1,
+      "lastSeen": 1792600167776,
+      "total": 2,
       "day": "2026-10-22",
-      "dayCount": 1,
+      "dayCount": 2,
       "strikes": 1,
       "blockedUntil": 0,
       "ipHashes": [
@@ -20,7 +20,8 @@
         }
       ],
       "recentComments": [
-        1792600120950
+        1792600120950,
+        1792600167776
       ],
       "lastAuthor": "tester"
     },
