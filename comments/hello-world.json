@@ -10,18 +10,6 @@
       "hidden": false
     },
     {
-      "id": "c_1792601067323_9320",
-      "author": "live-test",
-      "content": "正常内容",
-      "createdAt": 1792601067323,
-      "pinned": false,
-      "hidden": false,
-      "status": "pending",
-      "deviceId": "496191e1",
-      "ipHash": "496191e1",
-      "reviewReason": "AI 暂不可用，转人工审核"
-    },
-    {
       "id": "c_1792601070794_etkn",
       "author": "live-test",
       "content": "线上验收：这个 Astro 版本用着不错，图片是怎么优化的？",
