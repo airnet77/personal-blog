@@ -1,0 +1,11 @@
+# HTML 与其余资源每次向源站确认，避免文章更新后看到旧内容
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# 带内容哈希的构建产物可以长期缓存（放在后面，覆盖上面的默认值）
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Pagefind 搜索索引随构建变化，短缓存
+/pagefind/*
+  Cache-Control: public, max-age=3600, must-revalidate
