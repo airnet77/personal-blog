@@ -69,6 +69,29 @@
         1792601024669
       ],
       "lastAuthor": "live-test"
+    },
+    "222204222204222204222204": {
+      "firstSeen": 1792601028361,
+      "lastSeen": 1792601028361,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792601028361,
+          "reason": "血腥暴力",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792601028361
+      ],
+      "lastAuthor": "live-test"
     }
   }
 }
