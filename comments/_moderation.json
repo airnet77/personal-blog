@@ -40,6 +40,23 @@
         1792600503420
       ],
       "lastAuthor": "ai-tester"
+    },
+    "dddd0000dddd0000dddd0000dddd0003": {
+      "firstSeen": 1792600507824,
+      "lastSeen": 1792600507824,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 0,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "12ca17b4"
+      ],
+      "recentStrikes": [],
+      "recentComments": [
+        1792600507824
+      ],
+      "lastAuthor": "ai-tester"
     }
   }
 }
