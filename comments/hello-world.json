@@ -128,6 +128,18 @@
       "deviceId": "bbbb0000bbbb0000bbbb0000bbbb0001",
       "ipHash": "12ca17b4",
       "reviewReason": "AI 暂不可用，转人工审核"
+    },
+    {
+      "id": "c_1792600238817_9o57",
+      "author": "flood",
+      "content": "第 5 次正常发言，用于测试频率限制",
+      "createdAt": 1792600238817,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "bbbb0000bbbb0000bbbb0000bbbb0001",
+      "ipHash": "12ca17b4",
+      "reviewReason": "AI 暂不可用，转人工审核"
     }
   ]
 }
