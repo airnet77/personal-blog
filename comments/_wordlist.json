@@ -76,7 +76,7 @@
       ]
     },
     "gambling": {
-      "enabled": false,
+      "enabled": true,
       "words": [
         "赌博",
         "博彩",
@@ -91,8 +91,7 @@
         "竞猜下注",
         "赌钱",
         "casino",
-        "gambling",
-        "测试专用赌词"
+        "gambling"
       ]
     },
     "drugs": {
