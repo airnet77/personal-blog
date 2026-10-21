@@ -56,6 +56,18 @@
       "deviceId": "0123456789abcdef0123456789abcdef",
       "ipHash": "12ca17b4",
       "reviewReason": "不允许图片"
+    },
+    {
+      "id": "c_1792600119726_3fxi",
+      "author": "tester",
+      "content": "我支持共产党",
+      "createdAt": 1792600119726,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0001",
+      "ipHash": "12ca17b4",
+      "reviewReason": "涉政"
     }
   ]
 }
