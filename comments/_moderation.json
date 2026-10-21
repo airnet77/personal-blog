@@ -23,6 +23,29 @@
         1792601017984
       ],
       "lastAuthor": "live-test"
+    },
+    "222202222202222202222202": {
+      "firstSeen": 1792601021632,
+      "lastSeen": 1792601021632,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792601021632,
+          "reason": "赌博",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792601021632
+      ],
+      "lastAuthor": "live-test"
     }
   }
 }
