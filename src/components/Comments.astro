@@ -14,10 +14,22 @@ const slug = pathname.startsWith('/blog/')
 {
   slug && (
     <section class="mt-16 border-t border-zinc-200 pt-8 dark:border-zinc-800">
-      <h2 class="mb-2 text-lg font-semibold tracking-tight">评论</h2>
-      <p class="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
-        无需登录，支持 Markdown 语法。
-      </p>
+      <div class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold tracking-tight">评论</h2>
+          <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            无需登录，支持 Markdown 语法。
+          </p>
+        </div>
+        <button
+          id="comments-sort"
+          type="button"
+          class="rounded-md border border-zinc-300 px-2.5 py-1 text-xs text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          title="切换评论排序"
+        >
+          正序
+        </button>
+      </div>
 
       <div id="comments-list" class="space-y-4" />
       <p id="comments-status" class="text-sm text-zinc-500 dark:text-zinc-400">
@@ -86,6 +98,11 @@ const slug = pathname.startsWith('/blog/')
   const statusEl = document.getElementById('comments-status');
   const form = document.getElementById('comment-form') as HTMLFormElement | null;
   const hintEl = document.getElementById('comment-hint');
+  const sortBtn = document.getElementById('comments-sort');
+
+  /** 排序方式：asc = 正序（旧→新），desc = 倒序（新→旧）。置顶评论始终排最前 */
+  let sortOrder: 'asc' | 'desc' = 'asc';
+  let allComments: any[] = [];
 
   function escapeHtml(text: string): string {
     return text
@@ -139,6 +156,38 @@ const slug = pathname.startsWith('/blog/')
     (statusEl as HTMLElement).style.color = isError ? '#dc2626' : '';
   }
 
+  /** 置顶评论始终排最前；其余按当前排序方式 */
+  function sortForDisplay(list: any[]): any[] {
+    const pinned = list
+      .filter((c) => c.pinned)
+      .sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
+
+    const normal = list
+      .filter((c) => !c.pinned)
+      .sort((a, b) =>
+        sortOrder === 'asc'
+          ? Number(a.createdAt) - Number(b.createdAt)
+          : Number(b.createdAt) - Number(a.createdAt)
+      );
+
+    return [...pinned, ...normal];
+  }
+
+  function renderList() {
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    if (allComments.length === 0) {
+      setStatus('还没有评论，来说两句。');
+      return;
+    }
+
+    setStatus('');
+    for (const comment of sortForDisplay(allComments)) {
+      listEl.appendChild(renderComment(comment));
+    }
+  }
+
   async function load() {
     if (!listEl) return;
 
@@ -148,21 +197,19 @@ const slug = pathname.startsWith('/blog/')
 
       if (!res.ok) throw new Error(data.error || '加载失败');
 
-      const comments = Array.isArray(data.comments) ? data.comments : [];
-      listEl.innerHTML = '';
-
-      if (comments.length === 0) {
-        setStatus('还没有评论，来说两句。');
-        return;
-      }
-
-      setStatus('');
-      for (const comment of comments) {
-        listEl.appendChild(renderComment(comment));
-      }
+      allComments = Array.isArray(data.comments) ? data.comments : [];
+      renderList();
     } catch (err) {
       setStatus(`评论加载失败：${(err as Error).message}`, true);
     }
+  }
+
+  if (sortBtn) {
+    sortBtn.addEventListener('click', () => {
+      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      sortBtn.textContent = sortOrder === 'asc' ? '正序' : '倒序';
+      renderList();
+    });
   }
 
   if (form) {
