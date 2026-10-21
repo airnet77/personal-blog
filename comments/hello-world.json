@@ -164,6 +164,18 @@
       "deviceId": "22220d22220d22220d22220d",
       "ipHash": "496191e1",
       "reviewReason": "不允许编码字符"
+    },
+    {
+      "id": "c_1792601062345_khly",
+      "author": "live-test",
+      "content": "数据​隐藏",
+      "createdAt": 1792601062345,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "22220e22220e22220e22220e",
+      "ipHash": "496191e1",
+      "reviewReason": "包含不可见字符"
     }
   ]
 }
