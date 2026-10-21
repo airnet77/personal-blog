@@ -17,6 +17,29 @@
         1792601746338
       ],
       "lastAuthor": "online-ai-test"
+    },
+    "444402444402444402444402": {
+      "firstSeen": 1792601752052,
+      "lastSeen": 1792601752052,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792601752052,
+          "reason": "人身攻击辱骂，不宜公开展示",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792601752052
+      ],
+      "lastAuthor": "online-ai-test"
     }
   }
 }
