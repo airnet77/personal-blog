@@ -156,12 +156,12 @@
     },
     "cccc0000cccc0000cccc0000cccc0001": {
       "firstSeen": 1792600334562,
-      "lastSeen": 1792600341013,
-      "total": 2,
+      "lastSeen": 1792600345875,
+      "total": 3,
       "day": "2026-10-22",
-      "dayCount": 2,
-      "strikes": 2,
-      "blockedUntil": 0,
+      "dayCount": 3,
+      "strikes": 3,
+      "blockedUntil": 1793205145875,
       "ipHashes": [
         "12ca17b4"
       ],
@@ -175,11 +175,17 @@
           "at": 1792600341013,
           "reason": "涉政",
           "slug": "hello-world"
+        },
+        {
+          "at": 1792600345875,
+          "reason": "涉政",
+          "slug": "hello-world"
         }
       ],
       "recentComments": [
         1792600334562,
-        1792600341013
+        1792600341013,
+        1792600345875
       ],
       "lastAuthor": "tester"
     }
