@@ -1,4 +1,13 @@
 {
   "slug": "hello-world",
-  "comments": []
+  "comments": [
+    {
+      "id": "c_1792597140452_jvpy",
+      "author": "Alice",
+      "content": "��һ������ **����**",
+      "createdAt": 1792597140452,
+      "pinned": false,
+      "hidden": false
+    }
+  ]
 }
