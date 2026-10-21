@@ -32,6 +32,18 @@
       "deviceId": "11110000111100001111000011110002",
       "ipHash": "496191e1",
       "reviewReason": "不允许链接"
+    },
+    {
+      "id": "c_1792600916935_t7zi",
+      "author": "verify-bot",
+      "content": "![](https://example.com/a.png)",
+      "createdAt": 1792600916935,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "11110000111100001111000011110003",
+      "ipHash": "496191e1",
+      "reviewReason": "不允许图片"
     }
   ]
 }
