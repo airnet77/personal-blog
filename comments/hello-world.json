@@ -1,13 +1,4 @@
 {
   "slug": "hello-world",
-  "comments": [
-    {
-      "id": "c_1792597143449_bi3l",
-      "author": "Bob",
-      "content": "�ڶ������� `����`",
-      "createdAt": 1792597143450,
-      "pinned": false,
-      "hidden": false
-    }
-  ]
+  "comments": []
 }
