@@ -152,6 +152,18 @@
       "deviceId": "22220c22220c22220c22220c",
       "ipHash": "496191e1",
       "reviewReason": "不允许网址"
+    },
+    {
+      "id": "c_1792601058421_g984",
+      "author": "live-test",
+      "content": "&#104;ttp://evil",
+      "createdAt": 1792601058421,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "22220d22220d22220d22220d",
+      "ipHash": "496191e1",
+      "reviewReason": "不允许编码字符"
     }
   ]
 }
