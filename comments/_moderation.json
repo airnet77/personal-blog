@@ -156,10 +156,10 @@
     },
     "cccc0000cccc0000cccc0000cccc0001": {
       "firstSeen": 1792600244624,
-      "lastSeen": 1792600244624,
-      "total": 1,
+      "lastSeen": 1792600248545,
+      "total": 2,
       "day": "2026-10-22",
-      "dayCount": 1,
+      "dayCount": 2,
       "strikes": 0,
       "blockedUntil": 0,
       "ipHashes": [
@@ -167,7 +167,8 @@
       ],
       "recentStrikes": [],
       "recentComments": [
-        1792600244624
+        1792600244624,
+        1792600248545
       ],
       "lastAuthor": "tester"
     }
