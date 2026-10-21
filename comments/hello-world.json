@@ -92,6 +92,18 @@
       "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0003",
       "ipHash": "12ca17b4",
       "reviewReason": "不允许链接"
+    },
+    {
+      "id": "c_1792600132016_dvjg",
+      "author": "tester",
+      "content": "![](https://example.com/a.png)",
+      "createdAt": 1792600132016,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0004",
+      "ipHash": "12ca17b4",
+      "reviewReason": "不允许图片"
     }
   ]
 }
