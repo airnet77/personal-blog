@@ -2,7 +2,7 @@
 
 > 本文件会被 AI 编码助手在每次会话自动加载。**开启新会话时，先读完本文件与 [`rules.md`](./rules.md) 再动手。**
 >
-> 当前状态：**站点已上线** → <https://airnet-blog.pages.dev>；后台 WebUI 与自建评论系统（违禁词 / 只许文字 / 配额封禁 / 可插拔 AI 审核）均已完成。评论 AI 待配置 `AI_API_KEY` 后启用，未配置时自动转人工审核。
+> 当前状态：**站点已上线** → <https://airnet-blog.pages.dev>；后台 WebUI 与自建评论系统（违禁词 / 只许文字 / 配额封禁 / DeepSeek AI 审核）均已启用，`/api/health` 全绿。
 
 ---
 
@@ -25,7 +25,7 @@
 | RSS | @astrojs/rss | 4.0.19 | 输出 `/rss.xml` |
 | Sitemap | @astrojs/sitemap | 3.7.4 | 输出 `/sitemap-index.xml` |
 | 评论 | 自建（Pages Functions + GitHub 文件） | — | 数据存仓库 `comments/`，四道审核链，参数与词表都在后台改 |
-| 评论 AI | 可插拔（OpenAI 兼容 / Workers AI） | — | 靠 `AI_PROVIDER` + `AI_BASE_URL` + `AI_API_KEY` 切换，不锁供应商 |
+| 评论 AI | 可插拔（OpenAI 兼容 / Workers AI） | — | 当前 DeepSeek `deepseek-flash`；靠 `AI_PROVIDER` + `AI_BASE_URL` + `AI_API_KEY` 切换，不锁供应商 |
 | 后台 | 自研 WebUI + Pages Functions | — | `/admin/` 网页界面，服务端代理 GitHub，密码登录 |
 | 后台（回退） | @sveltia/cms | 0.248.1 | `config.yml` 保留，页面已停用 |
 | 托管 | Cloudflare Pages | — | Direct Upload（`wrangler pages deploy`），免费 `*.pages.dev` 子域 |

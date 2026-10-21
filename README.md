@@ -95,7 +95,7 @@ draft: false
 后台 → **评论设置** 调参数，**违禁词** 维护词表，**用户管理** 看设备档案与封禁，**评论管理** 处理待审与违规。
 
 > AI 审核靠三个环境变量接入，不配也能用（自动降级为「本地规则 + 转人工」）：
-> `AI_PROVIDER`（`openai` / `cloudflare`）、`AI_BASE_URL`、`AI_API_KEY`；模型名在后台改。
+> `AI_PROVIDER`（`openai` / `cloudflare`）、`AI_BASE_URL`、`AI_API_KEY`。当前用 **DeepSeek `deepseek-flash`**，模型名可在后台改。
 
 ## 图片
 

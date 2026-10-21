@@ -38,15 +38,34 @@ Cloudflare Pages（airnet-blog.pages.dev）
 | `ADMIN_PASSWORD` | Cloudflare 环境变量 | 进后台的密码 | 永久，随时可改 |
 | `SESSION_SECRET` | Cloudflare 环境变量 | 签署登录 Cookie | 永久，改了会强制所有人重新登录 |
 | `GH_TOKEN` | Cloudflare 环境变量 | 后台与评论读写 GitHub | 取决于令牌设置 |
-| `AI_PROVIDER` | Cloudflare 环境变量 | 评论 AI 审核协议：`openai`（默认）/ `cloudflare` | 永久 |
-| `AI_BASE_URL` | Cloudflare 环境变量 | OpenAI 兼容地址，如 `https://api.deepseek.com/v1` | 永久 |
-| `AI_API_KEY` | Cloudflare 环境变量 | 评论 AI 审核的密钥 | 取决于服务商 |
+| `AI_PROVIDER` | Cloudflare 环境变量 | AI 审核协议：`openai`（当前）/ `cloudflare` | 永久 |
+| `AI_BASE_URL` | Cloudflare 环境变量 | AI 接口地址：当前 `https://api.deepseek.com/v1` | 永久 |
+| `AI_API_KEY` | Cloudflare 环境变量 | DeepSeek 的 API Key | 取决于服务商 |
 | `CF_ACCOUNT_ID` | Cloudflare 环境变量 | 仅 `AI_PROVIDER=cloudflare` 时需要 | 永久 |
 | `CLOUDFLARE_API_TOKEN` | GitHub Secrets | Actions 部署用 | **注意会过期** |
 | `CLOUDFLARE_ACCOUNT_ID` | GitHub Secrets | 同上 | 永久 |
 
 > 评论 AI 审核**不配也能用**：没配 `AI_API_KEY` 时会自动退化成「只跑本地规则」，拿不准的评论转人工审核。
-> 换 AI 服务商只要改这三个变量 + 后台的「AI 模型名」，代码不用动。
+
+### AI 审核当前配置
+
+| 项 | 值 | 在哪改 |
+| --- | --- | --- |
+| 服务商 | DeepSeek（OpenAI 兼容协议） | `AI_PROVIDER` / `AI_BASE_URL`（Cloudflare 环境变量） |
+| 模型 | `deepseek-flash` | 后台 → 评论设置 → AI 模型名 |
+| 超时 | 15 秒（推理模型偏慢，留了余量） | `functions/lib/ai-review.ts` |
+| 失败降级 | 转人工审核 | 后台 → 评论设置 → AI 不可用时 |
+
+**换一家 AI 服务商**：
+
+1. Cloudflare → 环境变量，改 `AI_PROVIDER` / `AI_BASE_URL` / `AI_API_KEY`（三家都支持 OpenAI 兼容协议就行）
+2. 后台 → 评论设置 → 改「AI 模型名」
+3. 重新部署一次
+4. 打开 `/api/health`，确认 `AI_READY: true`
+
+**AI 审核的实际耗时**：线上实测 4–6 秒/条（含模型推理），所以读者点「发表评论」后要等几秒才看到结果，属正常。
+
+**费用参考**：`deepseek-flash` 按 token 计费，一条评论约 100–200 token，个人博客量级每月不到一元钱。
 
 ### 修改后台密码
 
