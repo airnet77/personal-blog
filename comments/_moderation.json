@@ -359,10 +359,10 @@
     },
     "222214222214222214222214": {
       "firstSeen": 1792601082218,
-      "lastSeen": 1792601085932,
-      "total": 2,
+      "lastSeen": 1792601089195,
+      "total": 3,
       "day": "2026-10-22",
-      "dayCount": 2,
+      "dayCount": 3,
       "strikes": 0,
       "blockedUntil": 0,
       "ipHashes": [
@@ -371,7 +371,8 @@
       "recentStrikes": [],
       "recentComments": [
         1792601082218,
-        1792601085932
+        1792601085932,
+        1792601089195
       ],
       "lastAuthor": "live-test"
     }
