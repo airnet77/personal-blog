@@ -64,7 +64,8 @@ export const DEFAULT_CONFIG: CommentConfig = {
   allowImages: false,
   allowHtml: false,
   reviewMode: 'ai',
-  aiModel: '@cf/meta/llama-3.1-8b-instruct',
+  /** 默认模型对应 DeepSeek（OpenAI 兼容）。换服务商时在后台改这一项 */
+  aiModel: 'deepseek-flash',
   aiFallback: 'pending',
   autoBlock: true,
   strikeLimit: 3,

@@ -12,7 +12,8 @@ import type { Env } from './github';
 import type { CommentConfig } from './comment-config';
 import { rulesReview, type ReviewInput, type ReviewResult, type Verdict } from './review-rules';
 
-const AI_TIMEOUT_MS = 8000;
+/** 单次 AI 调用超时。推理型模型（如 DeepSeek-V4-Flash）响应偏慢，留足余量 */
+const AI_TIMEOUT_MS = 15000;
 /** 连续失败这么多次后，本次运行内不再尝试 AI（避免每单都等 8 秒） */
 const FAILURE_THRESHOLD = 3;
 
