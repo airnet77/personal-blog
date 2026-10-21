@@ -2,14 +2,6 @@
   "slug": "hello-world",
   "comments": [
     {
-      "id": "c_1792597140452_jvpy",
-      "author": "Alice",
-      "content": "��һ������ **����**",
-      "createdAt": 1792597140452,
-      "pinned": true,
-      "hidden": false
-    },
-    {
       "id": "c_1792597143449_bi3l",
       "author": "Bob",
       "content": "�ڶ������� `����`",
