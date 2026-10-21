@@ -20,6 +20,18 @@
       "deviceId": "0123456789abcdef0123456789abcdef",
       "ipHash": "12ca17b4",
       "reviewReason": "缺少文字内容"
+    },
+    {
+      "id": "c_1792600073031_r7vn",
+      "author": "tester",
+      "content": "�����жĲ���վ",
+      "createdAt": 1792600073031,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "0123456789abcdef0123456789abcdef",
+      "ipHash": "12ca17b4",
+      "reviewReason": "AI 暂不可用，转人工审核"
     }
   ]
 }
