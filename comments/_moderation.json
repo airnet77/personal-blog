@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "devices": {
+    "222201222201222201222201": {
+      "firstSeen": 1792601017984,
+      "lastSeen": 1792601017984,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792601017984,
+          "reason": "涉政",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792601017984
+      ],
+      "lastAuthor": "live-test"
+    }
+  }
+}
