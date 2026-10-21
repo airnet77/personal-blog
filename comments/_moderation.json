@@ -23,6 +23,29 @@
         1792600911236
       ],
       "lastAuthor": "verify-bot"
+    },
+    "11110000111100001111000011110002": {
+      "firstSeen": 1792600914649,
+      "lastSeen": 1792600914649,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792600914649,
+          "reason": "不允许链接",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792600914649
+      ],
+      "lastAuthor": "verify-bot"
     }
   }
 }
