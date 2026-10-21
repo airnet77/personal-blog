@@ -2,8 +2,8 @@
 /**
  * 评论区（自建，数据存 GitHub 仓库的 comments/ 目录）。
  *
- * 浏览器只访问 /api/comments，不直连 GitHub，因此不受网络环境影响。
- * 评论内容为 Markdown，渲染前统一用 DOMPurify 净化。
+ * 浏览器只访问 /api/comments，不直连 GitHub。
+ * 评论只允许纯文字：服务端已拦截链接/图片/HTML，这里再用 DOMPurify 白名单兜一层。
  */
 const pathname = Astro.url.pathname;
 const slug = pathname.startsWith('/blog/')
@@ -13,57 +13,60 @@ const slug = pathname.startsWith('/blog/')
 
 {
   slug && (
-    <section class="mt-16 border-t border-zinc-200 pt-8 dark:border-zinc-800">
-      <div class="mb-6 flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <h2 class="text-lg font-semibold tracking-tight">评论</h2>
-          <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            无需登录，支持 Markdown 语法。
-          </p>
+    <section
+      id="comments-section"
+      class="mt-16 border-t border-zinc-200 pt-8 dark:border-zinc-800"
+    >
+      <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <div class="flex items-baseline gap-2">
+          <h2 class="text-base font-semibold tracking-tight">评论</h2>
+          <span id="comments-count" class="text-[12px] text-zinc-400 dark:text-zinc-500" />
         </div>
         <button
           id="comments-sort"
           type="button"
-          class="rounded-md border border-zinc-300 px-2.5 py-1 text-xs text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          class="rounded-md border border-zinc-300 px-2 py-0.5 text-[12px] text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
           title="切换评论排序"
         >
           正序
         </button>
       </div>
 
-      <div id="comments-list" class="space-y-4" />
-      <p id="comments-status" class="text-sm text-zinc-500 dark:text-zinc-400">
-        加载中…
-      </p>
+      <p id="comments-status" class="text-[13px] text-zinc-500 dark:text-zinc-400">加载中…</p>
+      <div id="comments-list" class="space-y-2.5" />
 
-      <form id="comment-form" class="mt-8 space-y-3" novalidate>
-        <div>
-          <label for="c-author" class="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">
-            昵称
-          </label>
-          <input
-            id="c-author"
-            type="text"
-            maxlength="30"
-            required
-            placeholder="怎么称呼你"
-            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
+      <div id="comments-more-wrap" class="mt-3 hidden">
+        <button
+          id="comments-more"
+          type="button"
+          class="w-full rounded-md border border-zinc-200 py-1.5 text-[12px] text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
+        >
+          展开全部
+        </button>
+      </div>
 
-        <div>
-          <label for="c-content" class="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">
-            内容（支持 Markdown）
-          </label>
-          <textarea
-            id="c-content"
-            rows="4"
-            maxlength="2000"
-            required
-            placeholder="说点什么…"
-            class="w-full resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
-          />
-        </div>
+      <form id="comment-form" class="mt-6 space-y-2.5" novalidate>
+        <p class="text-[12px] text-zinc-400 dark:text-zinc-500">
+          仅支持文字，请勿发送链接、图片或敏感内容。
+        </p>
+
+        <input
+          id="c-author"
+          type="text"
+          maxlength="30"
+          required
+          placeholder="昵称"
+          class="w-full rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        />
+
+        <textarea
+          id="c-content"
+          rows="3"
+          maxlength="1000"
+          required
+          placeholder="说点什么…（支持加粗、列表、代码块）"
+          class="w-full resize-y rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-[13px] leading-[1.55] outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+        />
 
         {/* 蜜罐字段：正常用户不可见，填写即判定为机器人 */}
         <input
@@ -78,39 +81,258 @@ const slug = pathname.startsWith('/blog/')
         <div class="flex items-center gap-3">
           <button
             type="submit"
-            class="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            class="rounded-md bg-zinc-900 px-3.5 py-1.5 text-[13px] text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
           >
             发表评论
           </button>
-          <span id="comment-hint" class="text-sm text-zinc-500 dark:text-zinc-400"></span>
+          <span id="c-count" class="text-[12px] text-zinc-400 dark:text-zinc-500">0 / 1000</span>
+          <span id="comment-hint" class="text-[12px]" />
         </div>
       </form>
     </section>
   )
 }
 
+<style is:global>
+  /* 评论正文：比文章正文更紧凑，避免长评论把页面撑很长 */
+  .comment-md {
+    font-size: 13px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+
+  .comment-md > :first-child {
+    margin-top: 0;
+  }
+
+  .comment-md > :last-child {
+    margin-bottom: 0;
+  }
+
+  .comment-md p {
+    margin: 0 0 0.45em;
+    line-height: 1.55;
+  }
+
+  .comment-md ul,
+  .comment-md ol {
+    margin: 0.35em 0 0.45em 1.15em;
+    padding: 0;
+  }
+
+  .comment-md li {
+    margin: 0.1em 0;
+    line-height: 1.55;
+  }
+
+  .comment-md blockquote {
+    margin: 0.4em 0;
+    padding-left: 0.7em;
+    border-left: 2px solid rgb(212 212 216);
+    color: rgb(113 113 122);
+  }
+
+  .comment-md code {
+    font-size: 0.92em;
+  }
+
+  .comment-md pre {
+    margin: 0.45em 0;
+    padding: 0.55em 0.7em;
+    font-size: 0.88em;
+    line-height: 1.5;
+    overflow-x: auto;
+    border-radius: 6px;
+    background: rgb(244 244 245);
+  }
+
+  .comment-md strong {
+    font-weight: 600;
+  }
+
+  /* 评论里不该出现抢眼的大标题 */
+  .comment-md h1,
+  .comment-md h2,
+  .comment-md h3,
+  .comment-md h4 {
+    margin: 0.45em 0 0.3em;
+    font-size: 1em;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* 超长评论默认只露 6 行，点「展开全文」放开 */
+  .comment-md.is-collapsed {
+    max-height: 9.3em;
+    overflow: hidden;
+  }
+</style>
+
 <script>
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
 
+  marked.setOptions({ gfm: true, breaks: true });
+
+  interface ClientConfig {
+    enabled: boolean;
+    maxAuthor: number;
+    maxLength: number;
+    pageSize: number;
+    collapseChars: number;
+    allowLinks: boolean;
+    allowImages: boolean;
+    allowHtml: boolean;
+  }
+
+  const DEFAULT_CONFIG: ClientConfig = {
+    enabled: true,
+    maxAuthor: 30,
+    maxLength: 1000,
+    pageSize: 10,
+    collapseChars: 280,
+    allowLinks: false,
+    allowImages: false,
+    allowHtml: false,
+  };
+
+  /** 正文允许的标签：只有文字排版，没有任何可执行或可外链的元素 */
+  const SAFE_TAGS = [
+    'p',
+    'br',
+    'strong',
+    'em',
+    'del',
+    'code',
+    'pre',
+    'blockquote',
+    'ul',
+    'ol',
+    'li',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+  ];
+
+  const FORBID_ATTR = ['style', 'onclick', 'onerror', 'onload', 'srcset'];
+
   const slug = window.location.pathname.replace(/^\/blog\//, '').replace(/\/$/, '');
+
   const listEl = document.getElementById('comments-list');
   const statusEl = document.getElementById('comments-status');
+  const countEl = document.getElementById('comments-count');
   const form = document.getElementById('comment-form') as HTMLFormElement | null;
   const hintEl = document.getElementById('comment-hint');
   const sortBtn = document.getElementById('comments-sort');
+  const moreBtn = document.getElementById('comments-more');
+  const moreWrap = document.getElementById('comments-more-wrap');
+  const authorInput = document.getElementById('c-author') as HTMLInputElement | null;
+  const contentInput = document.getElementById('c-content') as HTMLTextAreaElement | null;
+  const charCountEl = document.getElementById('c-count');
 
-  /** 排序方式：asc = 正序（旧→新），desc = 倒序（新→旧）。置顶评论始终排最前 */
-  let sortOrder: 'asc' | 'desc' = 'asc';
+  let cfg: ClientConfig = { ...DEFAULT_CONFIG };
   let allComments: any[] = [];
+  let sortOrder: 'asc' | 'desc' = 'asc';
+  let expanded = false;
 
-  function escapeHtml(text: string): string {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  /* ---------- 设备指纹 ---------- */
+
+  const DEVICE_STORAGE_KEY = 'airnet_did';
+
+  /** 收集尽量稳定的硬件/浏览器特征，SHA-256 后取 32 位十六进制 */
+  async function computeDeviceId(): Promise<string> {
+    try {
+      const cached = localStorage.getItem(DEVICE_STORAGE_KEY);
+      if (cached && /^[a-f0-9]{32}$/.test(cached)) return cached;
+    } catch {
+      /* 隐私模式下 localStorage 可能不可用 */
+    }
+
+    const parts: string[] = [];
+
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#f60';
+        ctx.fillRect(125, 1, 62, 20);
+        ctx.fillStyle = '#069';
+        ctx.fillText('airnet-blog-comment', 2, 15);
+        ctx.fillStyle = 'rgba(102,204,0,0.7)';
+        ctx.fillText('airnet-blog-comment', 4, 17);
+        parts.push(canvas.toDataURL());
+      }
+    } catch {
+      /* 某些浏览器禁用 canvas */
+    }
+
+    try {
+      const gl = document.createElement('canvas').getContext('webgl');
+      if (gl) {
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        if (ext) {
+          parts.push(String(gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) ?? ''));
+          parts.push(String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) ?? ''));
+        }
+      }
+    } catch {
+      /* 忽略 */
+    }
+
+    parts.push(
+      `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}x${window.devicePixelRatio}`,
+      Intl.DateTimeFormat().resolvedOptions().timeZone ?? '',
+      navigator.language ?? '',
+      String(navigator.hardwareConcurrency ?? ''),
+      String((navigator as any).deviceMemory ?? ''),
+      navigator.platform ?? '',
+      navigator.userAgent ?? '',
+      String(new Date().getTimezoneOffset())
+    );
+
+    const raw = `${parts.join('|')}|${crypto.randomUUID()}`;
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    const hex = Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, 32);
+
+    try {
+      localStorage.setItem(DEVICE_STORAGE_KEY, hex);
+    } catch {
+      /* 存不了就每次现算 */
+    }
+
+    return hex;
+  }
+
+  let deviceIdPromise: Promise<string> | null = null;
+
+  function getDeviceId(): Promise<string> {
+    if (!deviceIdPromise) deviceIdPromise = computeDeviceId();
+    return deviceIdPromise;
+  }
+
+  /* ---------- 渲染 ---------- */
+
+  function sanitizeMarkdown(content: string): string {
+    const tags = [...SAFE_TAGS];
+    const attrs: string[] = [];
+
+    if (cfg.allowLinks) {
+      tags.push('a');
+      attrs.push('href', 'rel', 'target');
+    }
+
+    return DOMPurify.sanitize(marked.parse(content) as string, {
+      ALLOWED_TAGS: tags,
+      ALLOWED_ATTR: attrs,
+      FORBID_ATTR,
+      FORBID_TAGS: ['img', 'iframe', 'script', 'svg', 'video', 'audio', 'form', 'input', 'object'],
+    });
   }
 
   function relativeTime(ts: number): string {
@@ -131,32 +353,64 @@ const slug = pathname.startsWith('/blog/')
   function renderComment(comment: any): HTMLElement {
     const article = document.createElement('article');
     article.className =
-      'rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800';
+      'rounded-lg border border-zinc-200/80 px-3 py-2.5 dark:border-zinc-800';
 
-    const safeAuthor = escapeHtml(String(comment.author ?? '匿名'));
-    const html = DOMPurify.sanitize(marked.parse(String(comment.content ?? '')) as string, {
-      USE_PROFILES: { html: true },
-    });
+    const header = document.createElement('header');
+    header.className =
+      'mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px]';
 
-    article.innerHTML = `
-      <header class="mb-2 flex flex-wrap items-center gap-2 text-sm">
-        <span class="font-medium text-zinc-900 dark:text-zinc-100">${safeAuthor}</span>
-        <span class="text-zinc-400 dark:text-zinc-500">${relativeTime(Number(comment.createdAt) || Date.now())}</span>
-        ${comment.pinned ? '<span class="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">置顶</span>' : ''}
-      </header>
-      <div class="prose prose-zinc max-w-none text-sm dark:prose-invert">${html}</div>
-    `;
+    const author = document.createElement('span');
+    author.className = 'font-medium text-zinc-800 dark:text-zinc-200';
+    author.textContent = String(comment.author ?? '匿名');
+
+    const time = document.createElement('span');
+    time.className = 'text-zinc-400 dark:text-zinc-500';
+    time.textContent = relativeTime(Number(comment.createdAt) || Date.now());
+
+    header.append(author, time);
+
+    if (comment.pinned) {
+      const badge = document.createElement('span');
+      badge.className =
+        'rounded bg-amber-100 px-1.5 text-[11px] leading-[18px] text-amber-800 dark:bg-amber-900/40 dark:text-amber-200';
+      badge.textContent = '置顶';
+      header.appendChild(badge);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'comment-md';
+    body.innerHTML = sanitizeMarkdown(String(comment.content ?? ''));
+
+    // 第二道保险：万一还是出现了危险元素，整条降级成纯文本
+    const forbidden = ['img', 'iframe', 'script', 'svg', 'video', 'audio', 'form', 'input'];
+    if (!cfg.allowLinks) forbidden.push('a');
+    if (body.querySelector(forbidden.join(','))) {
+      body.textContent = String(comment.content ?? '');
+    }
+
+    article.append(header, body);
+
+    const rawLength = String(comment.content ?? '').length;
+    if (rawLength > cfg.collapseChars) {
+      body.classList.add('is-collapsed');
+
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className =
+        'mt-1 text-[12px] text-blue-600 hover:underline dark:text-blue-400';
+      toggle.textContent = '展开全文';
+      toggle.addEventListener('click', () => {
+        const collapsed = body.classList.toggle('is-collapsed');
+        toggle.textContent = collapsed ? '展开全文' : '收起';
+      });
+
+      article.appendChild(toggle);
+    }
 
     return article;
   }
 
-  function setStatus(text: string, isError = false) {
-    if (!statusEl) return;
-    statusEl.textContent = text;
-    (statusEl as HTMLElement).style.color = isError ? '#dc2626' : '';
-  }
-
-  /** 置顶评论始终排最前；其余按当前排序方式 */
+  /** 置顶始终排最前；其余按当前排序方式 */
   function sortForDisplay(list: any[]): any[] {
     const pinned = list
       .filter((c) => c.pinned)
@@ -173,20 +427,78 @@ const slug = pathname.startsWith('/blog/')
     return [...pinned, ...normal];
   }
 
+  function setStatus(text: string, tone: 'muted' | 'error' = 'muted') {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.classList.toggle('text-red-600', tone === 'error');
+    statusEl.classList.toggle('dark:text-red-400', tone === 'error');
+    statusEl.classList.toggle('text-zinc-500', tone === 'muted');
+    statusEl.classList.toggle('dark:text-zinc-400', tone === 'muted');
+  }
+
   function renderList() {
     if (!listEl) return;
     listEl.innerHTML = '';
 
     if (allComments.length === 0) {
       setStatus('还没有评论，来说两句。');
+      if (countEl) countEl.textContent = '';
+      if (moreWrap) moreWrap.classList.add('hidden');
       return;
     }
 
     setStatus('');
-    for (const comment of sortForDisplay(allComments)) {
+    if (countEl) countEl.textContent = `共 ${allComments.length} 条`;
+
+    const sorted = sortForDisplay(allComments);
+    const pinned = sorted.filter((c) => c.pinned);
+    const normal = sorted.filter((c) => !c.pinned);
+    const shown = expanded ? sorted : [...pinned, ...normal.slice(0, cfg.pageSize)];
+
+    for (const comment of shown) {
       listEl.appendChild(renderComment(comment));
     }
+
+    const remain = sorted.length - shown.length;
+
+    if (moreWrap && moreBtn) {
+      if (expanded && sorted.length <= pinned.length + cfg.pageSize) {
+        moreWrap.classList.add('hidden');
+      } else if (remain > 0) {
+        moreWrap.classList.remove('hidden');
+        moreBtn.textContent = `展开全部（还有 ${remain} 条）`;
+      } else if (expanded) {
+        moreWrap.classList.remove('hidden');
+        moreBtn.textContent = '收起';
+      } else {
+        moreWrap.classList.add('hidden');
+      }
+    }
   }
+
+  function applyConfig() {
+    if (authorInput) authorInput.maxLength = cfg.maxAuthor;
+    if (contentInput) {
+      contentInput.maxLength = cfg.maxLength;
+      contentInput.placeholder = `说点什么…（最多 ${cfg.maxLength} 字，支持加粗、列表、代码块）`;
+    }
+    updateCharCount();
+
+    if (!cfg.enabled && form) {
+      form.classList.add('hidden');
+      setStatus('评论已关闭。');
+    }
+  }
+
+  function updateCharCount() {
+    if (!charCountEl || !contentInput) return;
+    const used = contentInput.value.length;
+    charCountEl.textContent = `${used} / ${cfg.maxLength}`;
+    charCountEl.classList.toggle('text-amber-600', used > cfg.maxLength * 0.9);
+    charCountEl.classList.toggle('text-red-600', used > cfg.maxLength);
+  }
+
+  /* ---------- 数据 ---------- */
 
   async function load() {
     if (!listEl) return;
@@ -197,12 +509,17 @@ const slug = pathname.startsWith('/blog/')
 
       if (!res.ok) throw new Error(data.error || '加载失败');
 
+      cfg = { ...DEFAULT_CONFIG, ...(data.config ?? {}) };
       allComments = Array.isArray(data.comments) ? data.comments : [];
+
+      applyConfig();
       renderList();
     } catch (err) {
-      setStatus(`评论加载失败：${(err as Error).message}`, true);
+      setStatus(`评论加载失败：${(err as Error).message}`, 'error');
     }
   }
+
+  /* ---------- 交互 ---------- */
 
   if (sortBtn) {
     sortBtn.addEventListener('click', () => {
@@ -212,33 +529,59 @@ const slug = pathname.startsWith('/blog/')
     });
   }
 
+  if (moreBtn) {
+    moreBtn.addEventListener('click', () => {
+      expanded = !expanded;
+      renderList();
+    });
+  }
+
+  if (contentInput) {
+    contentInput.addEventListener('input', updateCharCount);
+  }
+
   if (form) {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!authorInput || !contentInput) return;
 
-      const authorInput = document.getElementById('c-author') as HTMLInputElement;
-      const contentInput = document.getElementById('c-content') as HTMLTextAreaElement;
-      const websiteInput = document.getElementById('c-website') as HTMLInputElement;
-      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+      const websiteInput = document.getElementById('c-website') as HTMLInputElement | null;
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
 
       const author = authorInput.value.trim();
       const content = contentInput.value.trim();
 
+      const setHint = (text: string, tone: 'muted' | 'error' | 'ok' = 'muted') => {
+        if (!hintEl) return;
+        hintEl.textContent = text;
+        hintEl.classList.toggle('text-red-600', tone === 'error');
+        hintEl.classList.toggle('dark:text-red-400', tone === 'error');
+        hintEl.classList.toggle('text-emerald-600', tone === 'ok');
+        hintEl.classList.toggle('dark:text-emerald-400', tone === 'ok');
+        hintEl.classList.toggle('text-zinc-500', tone === 'muted');
+      };
+
       if (!author) {
-        if (hintEl) hintEl.textContent = '请填写昵称';
+        setHint('请填写昵称', 'error');
         authorInput.focus();
         return;
       }
       if (!content) {
-        if (hintEl) hintEl.textContent = '请填写内容';
+        setHint('请填写内容', 'error');
         contentInput.focus();
         return;
       }
+      if (content.length > cfg.maxLength) {
+        setHint(`内容最多 ${cfg.maxLength} 字`, 'error');
+        return;
+      }
 
-      submitBtn.disabled = true;
-      if (hintEl) hintEl.textContent = '提交中…';
+      if (submitBtn) submitBtn.disabled = true;
+      setHint('提交中…');
 
       try {
+        const deviceId = await getDeviceId();
+
         const res = await fetch('/api/comments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -246,24 +589,36 @@ const slug = pathname.startsWith('/blog/')
             slug,
             author,
             content,
-            website: websiteInput.value,
+            deviceId,
+            website: websiteInput?.value ?? '',
           }),
         });
+
         const data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || '提交失败');
+        if (!res.ok) {
+          // 被规则判违规：内容不外发，保留草稿让用户自己改
+          if (data.code === 'REJECTED') {
+            setHint(data.error || '评论违规，未发送', 'error');
+            return;
+          }
+          throw new Error(data.error || '提交失败');
+        }
 
         contentInput.value = '';
-        if (hintEl) hintEl.textContent = '已发表';
-        await load();
+        updateCharCount();
 
-        if (listEl && listEl.lastElementChild) {
-          listEl.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (data.status === 'pending') {
+          setHint(data.message || '已提交，审核通过后展示', 'muted');
+        } else {
+          setHint('已发表', 'ok');
         }
+
+        await load();
       } catch (err) {
-        if (hintEl) hintEl.textContent = (err as Error).message;
+        setHint((err as Error).message, 'error');
       } finally {
-        submitBtn.disabled = false;
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }
