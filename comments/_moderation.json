@@ -92,6 +92,29 @@
         1792600290939
       ],
       "lastAuthor": "tester"
+    },
+    "aaaa0000aaaa0000aaaa0000aaaa0005": {
+      "firstSeen": 1792600294831,
+      "lastSeen": 1792600294831,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "12ca17b4"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792600294831,
+          "reason": "不允许 HTML 标签",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792600294831
+      ],
+      "lastAuthor": "tester"
     }
   }
 }
