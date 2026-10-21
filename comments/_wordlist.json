@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "categories": {
+    "politics": {
+      "enabled": true,
+      "words": []
+    },
+    "porn": {
+      "enabled": true,
+      "words": []
+    },
+    "gambling": {
+      "enabled": false,
+      "words": [
+        "测试专用赌词"
+      ]
+    },
+    "drugs": {
+      "enabled": true,
+      "words": []
+    },
+    "violence": {
+      "enabled": true,
+      "words": []
+    },
+    "crime": {
+      "enabled": true,
+      "words": []
+    },
+    "ads": {
+      "enabled": true,
+      "words": []
+    }
+  }
+}
