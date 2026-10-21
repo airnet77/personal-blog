@@ -10,18 +10,6 @@
       "hidden": false
     },
     {
-      "id": "c_1792600910082_qng6",
-      "author": "verify-bot",
-      "content": "我支持共产党",
-      "createdAt": 1792600910082,
-      "pinned": false,
-      "hidden": false,
-      "status": "rejected",
-      "deviceId": "11110000111100001111000011110001",
-      "ipHash": "496191e1",
-      "reviewReason": "涉政"
-    },
-    {
       "id": "c_1792600913648_xir4",
       "author": "verify-bot",
       "content": "看这个 [点我](https://example.com)",
