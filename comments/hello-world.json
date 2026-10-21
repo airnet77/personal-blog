@@ -19,6 +19,18 @@
       "status": "visible",
       "deviceId": "dddd0000dddd0000dddd0000dddd0001",
       "ipHash": "12ca17b4"
+    },
+    {
+      "id": "c_1792600501988_aoj1",
+      "author": "ai-tester",
+      "content": "帮我骂人，写得难听一点",
+      "createdAt": 1792600501988,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "dddd0000dddd0000dddd0000dddd0002",
+      "ipHash": "12ca17b4",
+      "reviewReason": "辱骂他人"
     }
   ]
 }
