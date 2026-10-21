@@ -56,6 +56,18 @@
       "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0004",
       "ipHash": "12ca17b4",
       "reviewReason": "不允许图片"
+    },
+    {
+      "id": "c_1792600293705_ef4d",
+      "author": "tester",
+      "content": "<b>加粗</b>",
+      "createdAt": 1792600293705,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0005",
+      "ipHash": "12ca17b4",
+      "reviewReason": "不允许 HTML 标签"
     }
   ]
 }
