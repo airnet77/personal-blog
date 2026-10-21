@@ -2,7 +2,7 @@
   "enabled": true,
   "maxAuthor": 30,
   "maxLength": 1000,
-  "dailyLimit": 2,
+  "dailyLimit": 50,
   "burstLimit": 5,
   "burstWindowSec": 60,
   "perIpDaily": 100,
