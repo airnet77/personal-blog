@@ -3,6 +3,8 @@
 > 本文档描述从零到上线的全流程。**每一块都明确标注「谁做」**，避免出现「以为对方会做」的空档。
 >
 > 配套文件：[`AGENTS.md`](../AGENTS.md)（技术栈与硬约束）、[`rules.md`](../rules.md)（编码细则）。
+>
+> ⚠️ **时效说明**：文中关于 Giscus 的段落是**当时的方案记录**。评论系统后来改成了自建方案（Pages Functions + GitHub 文件 + AI 审核），现行做法见 [附录 D · 阶段 G](#附录-d--阶段-g评论治理已完成) 与 [`maintenance.md`](./maintenance.md) 的「评论治理速查」。
 
 ---
 
@@ -329,7 +331,7 @@
 | 构建报 lockfile / pnpm 版本错误 | 没设 `PNPM_VERSION=12` | 同上 |
 | 构建报找不到 `dist` | Build output directory 填错 | 你改成 `dist` |
 | 搜索无结果 | pagefind 索引未生成 / 没加 `data-pagefind-body` | 我修 |
-| 评论加载不出来 | 仓库未公开 / Discussions 未开 / ID 填错 | 你检查设置，我核对参数 |
+| 评论加载不出来 | 前端脚本被拦截 / 接口报错 / 评论被转待审 | 看 `/api/comments` 返回与 `/api/health`；去后台「评论管理」看待审 |
 | 暗色模式闪白 | 防闪烁脚本位置不对 | 我修 |
 | 页面中文空格异常 | Astro 7 `compressHTML: 'jsx'` 影响内联元素 | 我修 |
 | 自定义域名想加 | 后台加域名 + 改一次 `SITE_URL` | 你做后台，我改常量 |
