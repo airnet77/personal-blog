@@ -138,6 +138,29 @@
         1792601036027
       ],
       "lastAuthor": "live-test"
+    },
+    "222207222207222207222207": {
+      "firstSeen": 1792601039058,
+      "lastSeen": 1792601039058,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792601039058,
+          "reason": "色情",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792601039058
+      ],
+      "lastAuthor": "live-test"
     }
   }
 }
