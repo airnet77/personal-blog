@@ -140,6 +140,18 @@
       "deviceId": "bbbb0000bbbb0000bbbb0000bbbb0001",
       "ipHash": "12ca17b4",
       "reviewReason": "AI 暂不可用，转人工审核"
+    },
+    {
+      "id": "c_1792600332800_m27t",
+      "author": "tester",
+      "content": "共产党 1",
+      "createdAt": 1792600332800,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "cccc0000cccc0000cccc0000cccc0001",
+      "ipHash": "12ca17b4",
+      "reviewReason": "涉政"
     }
   ]
 }
