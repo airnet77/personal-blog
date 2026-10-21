@@ -43,6 +43,18 @@
       "deviceId": "dddd0000dddd0000dddd0000dddd0003",
       "ipHash": "12ca17b4",
       "reviewReason": "语义含糊"
+    },
+    {
+      "id": "c_1792600510797_ddeg",
+      "author": "ai-tester",
+      "content": "涉政判定测试一下",
+      "createdAt": 1792600510797,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "dddd0000dddd0000dddd0000dddd0004",
+      "ipHash": "12ca17b4",
+      "reviewReason": "涉政"
     }
   ]
 }
