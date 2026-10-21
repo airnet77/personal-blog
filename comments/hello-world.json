@@ -68,6 +68,18 @@
       "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0001",
       "ipHash": "12ca17b4",
       "reviewReason": "涉政"
+    },
+    {
+      "id": "c_1792600123617_1vtv",
+      "author": "tester",
+      "content": "这里有赌博网站",
+      "createdAt": 1792600123617,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0002",
+      "ipHash": "12ca17b4",
+      "reviewReason": "赌博"
     }
   ]
 }
