@@ -31,6 +31,18 @@
       "deviceId": "dddd0000dddd0000dddd0000dddd0002",
       "ipHash": "12ca17b4",
       "reviewReason": "辱骂他人"
+    },
+    {
+      "id": "c_1792600506665_4c5y",
+      "author": "ai-tester",
+      "content": "这句话有点含糊，你猜我想说什么",
+      "createdAt": 1792600506665,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "dddd0000dddd0000dddd0000dddd0003",
+      "ipHash": "12ca17b4",
+      "reviewReason": "语义含糊"
     }
   ]
 }
