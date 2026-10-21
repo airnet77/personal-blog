@@ -10,18 +10,6 @@
       "hidden": false
     },
     {
-      "id": "c_1792601084980_6h4u",
-      "author": "live-test",
-      "content": "频率测试第 2 条",
-      "createdAt": 1792601084980,
-      "pinned": false,
-      "hidden": false,
-      "status": "pending",
-      "deviceId": "222214222214222214222214",
-      "ipHash": "496191e1",
-      "reviewReason": "AI 暂不可用，转人工审核"
-    },
-    {
       "id": "c_1792601088047_6t5x",
       "author": "live-test",
       "content": "频率测试第 3 条",
