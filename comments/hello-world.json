@@ -188,6 +188,18 @@
       "deviceId": "496191e1",
       "ipHash": "496191e1",
       "reviewReason": "AI 暂不可用，转人工审核"
+    },
+    {
+      "id": "c_1792601070794_etkn",
+      "author": "live-test",
+      "content": "线上验收：这个 Astro 版本用着不错，图片是怎么优化的？",
+      "createdAt": 1792601070794,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "222213222213222213222213",
+      "ipHash": "496191e1",
+      "reviewReason": "AI 暂不可用，转人工审核"
     }
   ]
 }
