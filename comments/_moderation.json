@@ -153,6 +153,29 @@
         1792600328417
       ],
       "lastAuthor": "flood"
+    },
+    "cccc0000cccc0000cccc0000cccc0001": {
+      "firstSeen": 1792600334562,
+      "lastSeen": 1792600334562,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 1,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "12ca17b4"
+      ],
+      "recentStrikes": [
+        {
+          "at": 1792600334562,
+          "reason": "涉政",
+          "slug": "hello-world"
+        }
+      ],
+      "recentComments": [
+        1792600334562
+      ],
+      "lastAuthor": "tester"
     }
   }
 }
