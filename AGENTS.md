@@ -2,7 +2,7 @@
 
 > 本文件会被 AI 编码助手在每次会话自动加载。**开启新会话时，先读完本文件与 [`rules.md`](./rules.md) 再动手。**
 >
-> 当前状态：**站点已上线** → <https://airnet-blog.pages.dev>；**后台 WebUI 已完成**（`/admin/` + Pages Functions），待配置 Cloudflare 环境变量后启用。
+> 当前状态：**站点已上线** → <https://airnet-blog.pages.dev>；后台 WebUI 与自建评论系统（违禁词 / 只许文字 / 配额封禁 / 可插拔 AI 审核）均已完成。评论 AI 待配置 `AI_API_KEY` 后启用，未配置时自动转人工审核。
 
 ---
 
@@ -112,7 +112,7 @@ src/
   pages/admin/   内容管理后台 WebUI，不索引、不进 sitemap
   lib/           数据访问层（文章过滤、标签聚合、日期格式化等纯函数）
   styles/        全局 CSS（Tailwind 入口与主题变量）
-  consts.ts      站点名、SITE_URL、GISCUS 等常量
+  consts.ts      站点名、SITE_URL、导航等常量
 comments/         评论数据（运行时由 Pages Functions 写入仓库）
   <slug>.json     每篇文章的评论（visible / pending / rejected 三态）
   _config.json    评论开关与数值，由后台「评论设置」维护

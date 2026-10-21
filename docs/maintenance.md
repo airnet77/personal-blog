@@ -88,7 +88,7 @@ Cloudflare Dashboard → Workers & Pages → `airnet-blog` → **Settings** → 
 | 看访问量 | Cloudflare → 项目 → Analytics（需先启用 Web Analytics） |
 | 绑定自己的域名 | Cloudflare → 项目 → Custom domains → 添加域名 |
 
-> 评论系统是自建的（数据在仓库 `comments/` 目录），**不再使用 Giscus**；`src/consts.ts` 里的 `GISCUS` 仅为历史遗留，可以忽略。
+> 评论系统是自建的（数据在仓库 `comments/` 目录），配置全部在后台，不再使用 Giscus。
 
 ## 四、评论治理速查
 

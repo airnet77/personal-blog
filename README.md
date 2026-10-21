@@ -11,6 +11,7 @@
 - **网页后台**：浏览器里写文章，不需要本地环境
 - **自动部署**：保存后约 1–2 分钟自动上线（GitHub Actions）
 - **全文搜索**：Pagefind 构建时生成索引，运行时零后端
+- **自建评论**：无需登录、支持 Markdown；七类违禁词 + AI 审核 + 每日配额 + 自动封禁，全部参数在后台调
 - **内容即文件**：Markdown 存在本仓库，Git 就是内容管理系统
 - **SEO 就绪**：RSS、sitemap、canonical、BlogPosting 结构化数据
 - **明暗主题**：跟随系统，可手动切换并记住选择
@@ -23,6 +24,7 @@
 | 框架 | Astro 7（`output: 'static'`） |
 | 样式 | Tailwind CSS 4 + `@tailwindcss/typography` |
 | 搜索 | Pagefind 1.5（构建时索引） |
+| 评论 | 自建（Pages Functions + GitHub 文件），AI 审核可插拔 |
 | 后台 | 自研 WebUI + Cloudflare Pages Functions |
 | 认证 | HMAC 签名 Cookie + 环境变量密码 |
 | 部署 | Cloudflare Pages + GitHub Actions |
@@ -76,6 +78,25 @@ draft: false
 | `draft` | 否 | `true` 时为草稿，不出现在任何页面、RSS、搜索中 |
 | `cover` | 否 | 封面图路径 |
 
+## 评论
+
+文章页底部是自建评论区：读者不用登录，支持基础 Markdown（加粗、列表、代码块），**不允许链接、图片、HTML**。
+
+提交时会依次经过：
+
+1. **封禁 / 配额**：每台设备每天默认 50 条，每分钟 5 条；同一 IP 每天 100 条
+2. **违禁词**：涉政（一刀切）/ 色情 / 赌博 / 毒品 / 血腥暴力 / 违法犯罪 / 广告引流，命中直接拒绝
+3. **只许文字**：链接、图片、HTML、裸 URL、控制字符一律拦下
+4. **本地规则**：刷屏、纯符号、重复短语
+5. **AI 审核**：正常 / 拿不准（转人工）/ 违规（拒绝并隐藏）
+
+四种状态：`visible` 展示、`pending` 等人工、`rejected` 违规（前台永不显示，后台留档）、`hidden` 手动隐藏。
+
+后台 → **评论设置** 调参数，**违禁词** 维护词表，**用户管理** 看设备档案与封禁，**评论管理** 处理待审与违规。
+
+> AI 审核靠三个环境变量接入，不配也能用（自动降级为「本地规则 + 转人工」）：
+> `AI_PROVIDER`（`openai` / `cloudflare`）、`AI_BASE_URL`、`AI_API_KEY`；模型名在后台改。
+
 ## 图片
 
 放到 `src/assets/blog/` 目录，正文里用相对路径引用：
@@ -106,16 +127,17 @@ npx wrangler pages deploy dist --project-name airnet-blog
 
 ```
 src/
-  components/    可复用组件（Header、PostCard、TagList 等）
+  components/    可复用组件（Header、PostCard、Comments 等）
   content/blog/  Markdown 文章（唯一内容来源）
   layouts/       BaseLayout 承载 SEO 与主题切换
   lib/posts.ts   数据访问层（草稿过滤、标签聚合、日期格式化）
   pages/         路由（含 admin/ 后台页面）
   styles/        全局样式
-  consts.ts      站点名、SITE_URL、评论配置等常量
-functions/       Pages Functions（/api/* 后台接口）
-  api/           登录、文章 CRUD、图片上传、健康检查
-  lib/           认证、GitHub API、frontmatter 读写
+  consts.ts      站点名、SITE_URL、导航等常量
+comments/        评论数据（每篇文章一个 JSON，另有配置 / 词表 / 台账）
+functions/       Pages Functions（/api/*）
+  api/           登录、文章 CRUD、图片上传、评论、健康检查、admin/*
+  lib/           认证、GitHub API、frontmatter、评论存储与审核链（11 个模块）
 public/          静态资源（favicon、后台样式、_headers）
 .github/         GitHub Actions 工作流
 docs/            协作文档与运维手册

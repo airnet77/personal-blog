@@ -28,29 +28,3 @@ export const NAV_LINKS = [
 /** 社交链接。没有就留空数组 */
 export const SOCIAL_LINKS: { label: string; href: string }[] = [];
 
-/**
- * 评论（Giscus）配置。
- *
- * 基于 GitHub Discussions，无服务器、免费。
- * 评论存储在 https://github.com/airnet77/personal-blog/discussions
- *
- * 注意：发布评论需要 giscus App 已安装到该仓库。
- * 安装地址：https://github.com/apps/giscus
- */
-export const GISCUS = {
-  enabled: true,
-  repo: 'airnet77/personal-blog',
-  repoId: 'R_kgDOVSDWYA',
-  category: 'Announcements',
-  categoryId: 'DIC_kwDOVSDWYM4DJQw2',
-  /** 评论主题，跟随站点的明暗模式 */
-  theme: {
-    light: 'light',
-    dark: 'dark',
-  },
-  mapping: 'pathname',
-  reactionsEnabled: '1',
-  inputPosition: 'top',
-  lang: 'zh-CN',
-};
-
