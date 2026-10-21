@@ -8,6 +8,13 @@ export interface Env {
   GH_REPO: string;
   ADMIN_PASSWORD: string;
   SESSION_SECRET: string;
+
+  /** 评论 AI 审核（可选）：provider / base url / key */
+  AI_PROVIDER?: string;
+  AI_BASE_URL?: string;
+  AI_API_KEY?: string;
+  /** Workers AI 模式下需要账号 ID */
+  CF_ACCOUNT_ID?: string;
 }
 
 export class GitHubError extends Error {

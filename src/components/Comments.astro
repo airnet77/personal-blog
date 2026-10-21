@@ -257,7 +257,7 @@ const slug = pathname.startsWith('/blog/')
         if (hintEl) hintEl.textContent = '已发表';
         await load();
 
-        if (listEl.lastElementChild) {
+        if (listEl && listEl.lastElementChild) {
           listEl.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } catch (err) {

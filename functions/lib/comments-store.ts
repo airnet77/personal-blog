@@ -1,9 +1,13 @@
 /**
  * 评论存储层。
  * 数据以 JSON 文件形式存放在仓库的 comments/ 目录，每篇文章一个文件。
- * 通过 GitHub Contents API 读写，冲突时重试合并。
+ * 读写、冲突重试等通用逻辑在 json-store.ts，这里只保留评论语义。
  */
 import type { Env } from './github';
+import { mutateJson, readJson } from './json-store';
+
+/** visible=公开；pending=等人工审核；rejected=判违规（默认隐藏，前台永不展示） */
+export type CommentStatus = 'visible' | 'pending' | 'rejected';
 
 export interface Comment {
   id: string;
@@ -12,6 +16,10 @@ export interface Comment {
   createdAt: number;
   pinned: boolean;
   hidden: boolean;
+  status?: CommentStatus;
+  deviceId?: string;
+  ipHash?: string;
+  reviewReason?: string;
 }
 
 export interface CommentsFile {
@@ -20,17 +28,10 @@ export interface CommentsFile {
 }
 
 const DIR = 'comments';
-const MAX_COMMENTS = 500;
-const MAX_AUTHOR = 30;
-const MAX_CONTENT = 2000;
+/** 单篇文章的评论条数硬上限（含待审与违规留档） */
+const MAX_COMMENTS = 800;
 
 const API = 'https://api.github.com';
-
-class ConflictError extends Error {
-  constructor() {
-    super('conflict');
-  }
-}
 
 function headers(env: Env): Record<string, string> {
   return {
@@ -41,127 +42,86 @@ function headers(env: Env): Record<string, string> {
   };
 }
 
-function b64ToUtf8(b64: string): string {
-  const binary = atob(b64.replace(/\s/g, ''));
-  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-function utf8ToB64(text: string): string {
-  const bytes = new TextEncoder().encode(text);
-  let binary = '';
-  for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary);
-}
-
 function newId(): string {
   const rand = Math.random().toString(36).slice(2, 6);
   return `c_${Date.now()}_${rand}`;
 }
 
-function emptyFile(slug: string): CommentsFile {
-  return { slug, comments: [] };
+function filePath(slug: string): string {
+  return `${DIR}/${slug}.json`;
 }
 
-/** 读取某篇文章的评论文件。文件不存在时返回 null 与 null */
+function normalizeFile(input: unknown, slug: string): CommentsFile {
+  const raw = (input ?? {}) as Partial<CommentsFile>;
+  return {
+    slug: typeof raw.slug === 'string' && raw.slug ? raw.slug : slug,
+    comments: Array.isArray(raw.comments) ? (raw.comments as Comment[]) : [],
+  };
+}
+
+export function statusOf(comment: Comment): CommentStatus {
+  return comment.status ?? 'visible';
+}
+
+/** 读取某篇文章的评论文件。文件不存在时返回 null */
 export async function readComments(
   env: Env,
   slug: string
 ): Promise<{ file: CommentsFile | null; sha: string | null }> {
-  const path = `${DIR}/${slug}.json`;
-  const res = await fetch(`${API}/repos/${env.GH_REPO}/contents/${path}`, {
-    headers: headers(env),
-  });
-
-  if (res.status === 404) {
-    return { file: null, sha: null };
-  }
-
-  if (!res.ok) {
-    throw new Error(`读取评论失败（GitHub ${res.status}）`);
-  }
-
-  const data = (await res.json()) as { content: string; sha: string };
-  const parsed = JSON.parse(b64ToUtf8(data.content)) as CommentsFile;
-
-  return {
-    file: {
-      slug: parsed.slug ?? slug,
-      comments: Array.isArray(parsed.comments) ? parsed.comments : [],
-    },
-    sha: data.sha,
-  };
+  const { data, sha } = await readJson<unknown>(env, filePath(slug));
+  if (!data) return { file: null, sha: null };
+  return { file: normalizeFile(data, slug), sha };
 }
 
-/** 写入评论文件。传入 sha 表示更新，不传表示新建；冲突抛 ConflictError */
-async function writeComments(
-  env: Env,
-  slug: string,
-  file: CommentsFile,
-  sha: string | null
-): Promise<void> {
-  const path = `${DIR}/${slug}.json`;
-  const res = await fetch(`${API}/repos/${env.GH_REPO}/contents/${path}`, {
-    method: 'PUT',
-    headers: { ...headers(env), 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: `comments: 更新 ${slug} 的评论`,
-      content: utf8ToB64(JSON.stringify(file, null, 2) + '\n'),
-      branch: 'main',
-      ...(sha ? { sha } : {}),
-    }),
-  });
-
-  if (res.status === 409) throw new ConflictError();
-  if (!res.ok) {
-    let detail = '';
-    try {
-      const data = (await res.json()) as { message?: string };
-      detail = data.message ?? '';
-    } catch {
-      /* ignore */
-    }
-    throw new Error(`写入评论失败（GitHub ${res.status}${detail ? '：' + detail : ''}）`);
-  }
-}
-
-/**
- * 通用的「读取-修改-写回」流程，遇冲突自动重试。
- * mutate 返回 false 表示无需写入。
- */
+/** 通用的「读取-修改-写回」，冲突由 json-store 自动重试 */
 async function mutateFile<T>(
   env: Env,
   slug: string,
   mutate: (file: CommentsFile) => { changed: boolean; result: T }
 ): Promise<T> {
-  let lastError: unknown = null;
+  return mutateJson<CommentsFile, T>(env, filePath(slug), (current) => {
+    const file = normalizeFile(current, slug);
+    const { changed, result } = mutate(file);
+    return { changed, next: changed ? file : undefined, result };
+  });
+}
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const { file, sha } = await readComments(env, slug);
-    const target = file ?? emptyFile(slug);
-    const { changed, result } = mutate(target);
-
-    if (!changed) return result;
-
-    try {
-      await writeComments(env, slug, target, sha);
-      return result;
-    } catch (err) {
-      lastError = err;
-      if (err instanceof ConflictError) continue;
-      throw err;
-    }
+/** 违规留档超上限时，优先淘汰最旧的 rejected，其次最旧的 hidden */
+function trimFile(file: CommentsFile, maxRejected: number): void {
+  const rejected = file.comments.filter((c) => statusOf(c) === 'rejected');
+  if (maxRejected >= 0 && rejected.length > maxRejected) {
+    const remove = new Set(
+      rejected
+        .slice()
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .slice(0, rejected.length - maxRejected)
+        .map((c) => c.id)
+    );
+    file.comments = file.comments.filter((c) => !remove.has(c.id));
   }
 
-  throw lastError instanceof Error ? lastError : new Error('评论写入冲突，请重试');
+  if (file.comments.length > MAX_COMMENTS) {
+    const removable = file.comments
+      .filter((c) => statusOf(c) !== 'visible' || c.hidden)
+      .sort((a, b) => a.createdAt - b.createdAt);
+    const overflow = file.comments.length - MAX_COMMENTS;
+    const remove = new Set(removable.slice(0, overflow).map((c) => c.id));
+    file.comments = file.comments.filter((c) => !remove.has(c.id));
+  }
 }
 
 export interface NewCommentInput {
   author: string;
   content: string;
+  status: CommentStatus;
+  deviceId?: string;
+  ipHash?: string;
+  reviewReason?: string;
+  /** 违规留档上限；0 表示不保留违规记录 */
+  maxRejected?: number;
 }
 
-/** 追加一条评论 */
+/** 追加一条评论（可见 / 待审 / 违规留档） */
 export async function appendComment(
   env: Env,
   slug: string,
@@ -170,12 +130,8 @@ export async function appendComment(
   const author = input.author.trim();
   const content = input.content.trim();
 
-  if (!author || author.length > MAX_AUTHOR) {
-    throw new Error(`昵称长度需在 1–${MAX_AUTHOR} 字之间`);
-  }
-  if (!content || content.length > MAX_CONTENT) {
-    throw new Error(`内容长度需在 1–${MAX_CONTENT} 字之间`);
-  }
+  if (!author) throw new Error('昵称为空');
+  if (!content) throw new Error('内容为空');
 
   return mutateFile(env, slug, (file) => {
     if (file.comments.length >= MAX_COMMENTS) {
@@ -189,19 +145,32 @@ export async function appendComment(
       createdAt: Date.now(),
       pinned: false,
       hidden: false,
+      status: input.status,
     };
 
+    if (input.deviceId) comment.deviceId = input.deviceId;
+    if (input.ipHash) comment.ipHash = input.ipHash;
+    if (input.reviewReason) comment.reviewReason = input.reviewReason;
+
     file.comments.push(comment);
+    trimFile(file, input.maxRejected ?? 200);
+
     return { changed: true, result: comment };
   });
 }
 
-/** 更新某条评论的置顶/隐藏状态 */
+export interface CommentPatch {
+  pinned?: boolean;
+  hidden?: boolean;
+  status?: CommentStatus;
+}
+
+/** 更新置顶 / 隐藏 / 状态（通过待审、恢复违规） */
 export async function updateComment(
   env: Env,
   slug: string,
   id: string,
-  patch: { pinned?: boolean; hidden?: boolean }
+  patch: CommentPatch
 ): Promise<Comment> {
   return mutateFile(env, slug, (file) => {
     const comment = file.comments.find((c) => c.id === id);
@@ -209,6 +178,7 @@ export async function updateComment(
 
     if (typeof patch.pinned === 'boolean') comment.pinned = patch.pinned;
     if (typeof patch.hidden === 'boolean') comment.hidden = patch.hidden;
+    if (patch.status) comment.status = patch.status;
 
     return { changed: true, result: comment };
   });
@@ -225,10 +195,18 @@ export async function deleteComment(env: Env, slug: string, id: string): Promise
   });
 }
 
-/** 列出所有文章的评论文件（管理端用） */
-export async function listAllComments(
-  env: Env
-): Promise<{ slug: string; total: number; hidden: number; comments: Comment[] }[]> {
+export interface PostComments {
+  slug: string;
+  total: number;
+  visible: number;
+  pending: number;
+  rejected: number;
+  hidden: number;
+  comments: Comment[];
+}
+
+/** 列出所有文章的评论文件（管理端用）。跳过 _ 开头的配置文件 */
+export async function listAllComments(env: Env): Promise<PostComments[]> {
   const res = await fetch(`${API}/repos/${env.GH_REPO}/contents/${DIR}`, {
     headers: headers(env),
   });
@@ -238,22 +216,27 @@ export async function listAllComments(
 
   const items = (await res.json()) as { name: string; type: string }[];
   const slugs = items
-    .filter((item) => item.type === 'file' && item.name.endsWith('.json'))
+    .filter(
+      (item) => item.type === 'file' && item.name.endsWith('.json') && !item.name.startsWith('_')
+    )
     .map((item) => item.name.replace(/\.json$/, ''));
 
   const results = await Promise.all(
-    slugs.map(async (slug) => {
+    slugs.map(async (slug): Promise<PostComments> => {
       try {
         const { file } = await readComments(env, slug);
         const comments = file?.comments ?? [];
         return {
           slug,
           total: comments.length,
-          hidden: comments.filter((c) => c.hidden).length,
+          visible: comments.filter((c) => statusOf(c) === 'visible' && !c.hidden).length,
+          pending: comments.filter((c) => statusOf(c) === 'pending').length,
+          rejected: comments.filter((c) => statusOf(c) === 'rejected').length,
+          hidden: comments.filter((c) => c.hidden && statusOf(c) === 'visible').length,
           comments,
         };
       } catch {
-        return { slug, total: 0, hidden: 0, comments: [] };
+        return { slug, total: 0, visible: 0, pending: 0, rejected: 0, hidden: 0, comments: [] };
       }
     })
   );
@@ -261,13 +244,24 @@ export async function listAllComments(
   return results.sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
-/** 前台展示用：过滤隐藏、置顶优先、时间正序 */
+/** 前台展示：只取 visible 且未隐藏；置顶优先，其余时间正序 */
 export function visibleComments(file: CommentsFile | null): Comment[] {
   if (!file) return [];
 
-  const visible = file.comments.filter((c) => !c.hidden);
+  const visible = file.comments.filter((c) => statusOf(c) === 'visible' && !c.hidden);
   const pinned = visible.filter((c) => c.pinned).sort((a, b) => b.createdAt - a.createdAt);
   const normal = visible.filter((c) => !c.pinned).sort((a, b) => a.createdAt - b.createdAt);
 
   return [...pinned, ...normal];
+}
+
+/** 给浏览器看的字段（去掉设备标识与审核内部信息） */
+export function publicComment(comment: Comment) {
+  return {
+    id: comment.id,
+    author: comment.author,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    pinned: Boolean(comment.pinned),
+  };
 }
