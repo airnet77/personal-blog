@@ -104,6 +104,18 @@
       "deviceId": "222208222208222208222208",
       "ipHash": "496191e1",
       "reviewReason": "不允许链接"
+    },
+    {
+      "id": "c_1792601045239_bfx3",
+      "author": "live-test",
+      "content": "![](https://example.com/a.png)",
+      "createdAt": 1792601045239,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "222209222209222209222209",
+      "ipHash": "496191e1",
+      "reviewReason": "不允许图片"
     }
   ]
 }
