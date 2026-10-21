@@ -10,18 +10,6 @@
       "hidden": false
     },
     {
-      "id": "c_1792601062345_khly",
-      "author": "live-test",
-      "content": "数据​隐藏",
-      "createdAt": 1792601062345,
-      "pinned": false,
-      "hidden": false,
-      "status": "rejected",
-      "deviceId": "22220e22220e22220e22220e",
-      "ipHash": "496191e1",
-      "reviewReason": "包含不可见字符"
-    },
-    {
       "id": "c_1792601067323_9320",
       "author": "live-test",
       "content": "正常内容",
