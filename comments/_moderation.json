@@ -135,10 +135,10 @@
     },
     "bbbb0000bbbb0000bbbb0000bbbb0001": {
       "firstSeen": 1792600306606,
-      "lastSeen": 1792600306606,
-      "total": 1,
+      "lastSeen": 1792600310907,
+      "total": 2,
       "day": "2026-10-22",
-      "dayCount": 1,
+      "dayCount": 2,
       "strikes": 0,
       "blockedUntil": 0,
       "ipHashes": [
@@ -146,7 +146,8 @@
       ],
       "recentStrikes": [],
       "recentComments": [
-        1792600306606
+        1792600306606,
+        1792600310907
       ],
       "lastAuthor": "flood"
     }
