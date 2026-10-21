@@ -10,18 +10,6 @@
       "hidden": false
     },
     {
-      "id": "c_1792600913648_xir4",
-      "author": "verify-bot",
-      "content": "看这个 [点我](https://example.com)",
-      "createdAt": 1792600913648,
-      "pinned": false,
-      "hidden": false,
-      "status": "rejected",
-      "deviceId": "11110000111100001111000011110002",
-      "ipHash": "496191e1",
-      "reviewReason": "不允许链接"
-    },
-    {
       "id": "c_1792600916935_t7zi",
       "author": "verify-bot",
       "content": "![](https://example.com/a.png)",
