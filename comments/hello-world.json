@@ -152,6 +152,18 @@
       "deviceId": "cccc0000cccc0000cccc0000cccc0001",
       "ipHash": "12ca17b4",
       "reviewReason": "AI 暂不可用，转人工审核"
+    },
+    {
+      "id": "c_1792600247291_d1xg",
+      "author": "tester",
+      "content": "反复测试涉政内容 2",
+      "createdAt": 1792600247291,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "cccc0000cccc0000cccc0000cccc0001",
+      "ipHash": "12ca17b4",
+      "reviewReason": "AI 暂不可用，转人工审核"
     }
   ]
 }
