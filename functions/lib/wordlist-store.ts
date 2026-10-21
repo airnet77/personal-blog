@@ -66,16 +66,22 @@ export function sanitizeWordList(input: unknown): WordListState {
 
   for (const category of CATEGORIES) {
     const entry = raw[category];
-    if (!entry || typeof entry !== 'object') continue;
 
-    const enabled =
-      typeof (entry as { enabled?: unknown }).enabled === 'boolean'
-        ? ((entry as { enabled?: boolean }).enabled as boolean)
-        : true;
+    // 兼容三种写法：{enabled, words} / 纯数组 / 缺失
+    let enabled = true;
+    let wordsInput: unknown;
 
-    const words = Array.isArray((entry as { words?: unknown }).words)
-      ? normalizeWords((entry as { words?: unknown }).words)
-      : [];
+    if (Array.isArray(entry)) {
+      wordsInput = entry;
+    } else if (entry && typeof entry === 'object') {
+      const record = entry as { enabled?: unknown; words?: unknown };
+      if (typeof record.enabled === 'boolean') enabled = record.enabled;
+      wordsInput = record.words;
+    } else {
+      continue;
+    }
+
+    const words = Array.isArray(wordsInput) ? normalizeWords(wordsInput) : [];
 
     state.categories[category] = { enabled, words };
   }

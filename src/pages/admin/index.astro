@@ -34,6 +34,9 @@
         <nav>
           <button id="btn-new" class="primary">新建文章</button>
           <button id="btn-comments">评论管理</button>
+          <button id="btn-settings">评论设置</button>
+          <button id="btn-wordlist">违禁词</button>
+          <button id="btn-moderation">用户管理</button>
           <a href="/" target="_blank" rel="noopener"><button type="button">查看站点</button></a>
           <button id="btn-logout">退出</button>
         </nav>
@@ -115,7 +118,12 @@
       <header class="app-header">
         <span class="brand">评论管理</span>
         <nav>
-          <span id="c-stats" style="color: var(--muted); font-size: 13px"></span>
+          <div class="filter-group" id="c-filters">
+            <button type="button" data-status="all" class="active">全部</button>
+            <button type="button" data-status="pending">待审</button>
+            <button type="button" data-status="rejected">违规</button>
+          </div>
+          <span id="c-stats" class="muted-note"></span>
           <button id="btn-comments-back">返回文章</button>
         </nav>
       </header>
@@ -131,6 +139,66 @@
         <section class="editor">
           <div id="c-empty" class="empty">选择左侧文章查看评论</div>
           <div id="c-list" class="editor-inner hidden"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 评论设置 -->
+    <div id="settings-view" class="hidden">
+      <header class="app-header">
+        <span class="brand">评论设置</span>
+        <nav>
+          <span id="s-ai-status" class="muted-note"></span>
+          <button id="btn-settings-save" class="primary">保存</button>
+          <button id="btn-settings-back">返回文章</button>
+        </nav>
+      </header>
+
+      <div class="app-body single">
+        <section class="editor">
+          <div id="settings-form" class="editor-inner">
+            <div class="empty">加载中…</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 违禁词 -->
+    <div id="wordlist-view" class="hidden">
+      <header class="app-header">
+        <span class="brand">违禁词</span>
+        <nav>
+          <span id="w-summary" class="muted-note"></span>
+          <button id="btn-wordlist-save" class="primary">保存</button>
+          <button id="btn-wordlist-reset">恢复默认</button>
+          <button id="btn-wordlist-back">返回文章</button>
+        </nav>
+      </header>
+
+      <div class="app-body single">
+        <section class="editor">
+          <div id="wordlist-form" class="editor-inner">
+            <div class="empty">加载中…</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 用户管理 -->
+    <div id="moderation-view" class="hidden">
+      <header class="app-header">
+        <span class="brand">用户管理</span>
+        <nav>
+          <span id="m-stats" class="muted-note"></span>
+          <button id="btn-moderation-back">返回文章</button>
+        </nav>
+      </header>
+
+      <div class="app-body single">
+        <section class="editor">
+          <div id="moderation-list" class="editor-inner">
+            <div class="empty">加载中…</div>
+          </div>
         </section>
       </div>
     </div>
@@ -199,13 +267,13 @@
       /* ---------- 视图切换 ---------- */
 
       function showLogin() {
+        for (const view of ALL_VIEWS) $(view).classList.add('hidden');
         $('login-view').classList.remove('hidden');
-        $('app-view').classList.add('hidden');
       }
 
       function showApp() {
         $('login-view').classList.add('hidden');
-        $('app-view').classList.remove('hidden');
+        showView('app-view');
       }
 
       /* ---------- 列表 ---------- */
@@ -459,33 +527,52 @@
         }
       });
 
+      /* ---------- 视图切换 ---------- */
+
+      const ALL_VIEWS = [
+        'app-view',
+        'comments-view',
+        'settings-view',
+        'wordlist-view',
+        'moderation-view',
+      ];
+
+      function showView(id: string) {
+        for (const view of ALL_VIEWS) $(view).classList.toggle('hidden', view !== id);
+      }
+
       /* ---------- 评论管理 ---------- */
 
       const commentsState = {
         posts: [] as any[],
         selectedSlug: '',
+        status: 'all',
       };
 
       function showCommentsView() {
-        $('app-view').classList.add('hidden');
-        $('comments-view').classList.remove('hidden');
+        showView('comments-view');
         loadCommentsAdmin().catch((e) => toast((e as Error).message, 'error'));
       }
 
       function showEditorView() {
-        $('comments-view').classList.add('hidden');
-        $('app-view').classList.remove('hidden');
+        showView('app-view');
       }
 
       async function loadCommentsAdmin() {
-        const data = await api('/api/admin/comments');
+        const data = await api(`/api/admin/comments?status=${commentsState.status}`);
         commentsState.posts = data.posts ?? [];
-        $('c-stats').textContent = `共 ${data.total ?? 0} 条 · 隐藏 ${data.hidden ?? 0} 条`;
+        const stats = data.stats ?? {};
+        $('c-stats').textContent = `共 ${stats.total ?? 0} · 待审 ${stats.pending ?? 0} · 违规 ${stats.rejected ?? 0} · 隐藏 ${stats.hidden ?? 0}`;
         renderCommentPosts();
 
         if (commentsState.selectedSlug) {
           const still = commentsState.posts.find((p) => p.slug === commentsState.selectedSlug);
-          if (still) renderComments(still);
+          if (still) {
+            renderComments(still);
+          } else {
+            $('c-list').classList.add('hidden');
+            $('c-empty').classList.remove('hidden');
+          }
         }
       }
 
@@ -494,7 +581,7 @@
         box.innerHTML = '';
 
         if (commentsState.posts.length === 0) {
-          box.innerHTML = '<div class="empty">还没有任何评论</div>';
+          box.innerHTML = '<div class="empty">没有符合条件的评论</div>';
           return;
         }
 
@@ -505,7 +592,9 @@
           btn.innerHTML = `
             <span class="t">${escapeHtml(post.slug)}</span>
             <span class="m">
-              <span>${post.total} 条</span>
+              <span>${post.comments.length} 条</span>
+              ${post.pending ? `<span class="badge badge-pending">待审 ${post.pending}</span>` : ''}
+              ${post.rejected ? `<span class="badge badge-rejected">违规 ${post.rejected}</span>` : ''}
               ${post.hidden ? `<span class="badge">隐藏 ${post.hidden}</span>` : ''}
             </span>
           `;
@@ -537,32 +626,52 @@
         }
       }
 
+      const STATUS_LABELS: Record<string, string> = {
+        visible: '',
+        pending: '待审',
+        rejected: '违规',
+      };
+
       function renderCommentRow(slug: string, comment: any): HTMLElement {
         const row = document.createElement('div');
         row.className = 'comment-row';
 
+        const status: string = comment.status ?? 'visible';
         const when = new Date(comment.createdAt).toLocaleString('zh-CN');
+        const needApprove = status === 'pending' || status === 'rejected';
+
         row.innerHTML = `
           <div class="comment-meta">
             <strong>${escapeHtml(comment.author)}</strong>
             <span>${when}</span>
+            ${status !== 'visible' ? `<span class="badge badge-${status}">${STATUS_LABELS[status]}</span>` : ''}
             ${comment.pinned ? '<span class="badge">置顶</span>' : ''}
             ${comment.hidden ? '<span class="badge">已隐藏</span>' : ''}
+            ${comment.reviewReason ? `<span class="review-reason">${escapeHtml(String(comment.reviewReason))}</span>` : ''}
           </div>
           <div class="comment-body">${escapeHtml(comment.content).replace(/\n/g, '<br>')}</div>
           <div class="comment-actions">
+            ${needApprove ? '<button type="button" data-act="approve" class="primary">通过并显示</button>' : ''}
             <button type="button" data-act="pin">${comment.pinned ? '取消置顶' : '置顶'}</button>
-            <button type="button" data-act="hide">${comment.hidden ? '恢复显示' : '隐藏'}</button>
+            ${status === 'visible' ? `<button type="button" data-act="hide">${comment.hidden ? '恢复显示' : '隐藏'}</button>` : ''}
+            ${status !== 'rejected' ? '<button type="button" data-act="reject">判为违规</button>' : ''}
             <button type="button" data-act="delete" class="danger">删除</button>
           </div>
         `;
 
+        row.querySelector('[data-act="approve"]')?.addEventListener('click', () =>
+          updateComment(slug, comment.id, { status: 'visible', hidden: false })
+        );
         row.querySelector('[data-act="pin"]')!.addEventListener('click', () =>
           updateComment(slug, comment.id, { pinned: !comment.pinned })
         );
-        row.querySelector('[data-act="hide"]')!.addEventListener('click', () =>
+        row.querySelector('[data-act="hide"]')?.addEventListener('click', () =>
           updateComment(slug, comment.id, { hidden: !comment.hidden })
         );
+        row.querySelector('[data-act="reject"]')?.addEventListener('click', () => {
+          if (!confirm('判为违规？该评论会从前台隐藏，并保留在违规列表里。')) return;
+          updateComment(slug, comment.id, { status: 'rejected', hidden: true });
+        });
         row.querySelector('[data-act="delete"]')!.addEventListener('click', () =>
           removeComment(slug, comment.id)
         );
@@ -570,7 +679,7 @@
         return row;
       }
 
-      async function updateComment(slug: string, id: string, patch: Record<string, boolean>) {
+      async function updateComment(slug: string, id: string, patch: Record<string, unknown>) {
         try {
           await api(
             `/api/admin/comments?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}`,
@@ -598,8 +707,491 @@
         }
       }
 
+      /* ---------- 评论设置 ---------- */
+
+      interface SettingField {
+        key: string;
+        label: string;
+        type: 'bool' | 'number' | 'text' | 'select';
+        hint?: string;
+        min?: number;
+        max?: number;
+        options?: [string, string][];
+      }
+
+      const SETTINGS_SCHEMA: { group: string; items: SettingField[] }[] = [
+        {
+          group: '基础',
+          items: [
+            {
+              key: 'enabled',
+              label: '评论总开关',
+              type: 'bool',
+              hint: '关闭后前台隐藏评论框，接口也会拒绝提交',
+            },
+            { key: 'maxAuthor', label: '昵称最大字数', type: 'number', min: 1, max: 50 },
+            { key: 'maxLength', label: '评论最大字数', type: 'number', min: 10, max: 5000 },
+          ],
+        },
+        {
+          group: '频率与配额',
+          items: [
+            {
+              key: 'dailyLimit',
+              label: '每台设备每天最多条数',
+              type: 'number',
+              min: 1,
+              max: 500,
+              hint: '默认 50',
+            },
+            { key: 'burstLimit', label: '短时间内最多条数', type: 'number', min: 1, max: 100 },
+            { key: 'burstWindowSec', label: '频率统计窗口（秒）', type: 'number', min: 5, max: 3600 },
+            {
+              key: 'perIpDaily',
+              label: '同一 IP 每天最多条数',
+              type: 'number',
+              min: 1,
+              max: 2000,
+              hint: '设备指纹可被清缓存绕过，这一项是兜底',
+            },
+          ],
+        },
+        {
+          group: '内容格式',
+          items: [
+            {
+              key: 'allowLinks',
+              label: '允许链接',
+              type: 'bool',
+              hint: '默认禁止；开启后仍过滤 javascript: 等危险协议',
+            },
+            { key: 'allowImages', label: '允许图片', type: 'bool', hint: '默认禁止' },
+            { key: 'allowHtml', label: '允许 HTML 标签', type: 'bool', hint: '默认禁止' },
+          ],
+        },
+        {
+          group: '审核',
+          items: [
+            {
+              key: 'wordListMode',
+              label: '违禁词命中后',
+              type: 'select',
+              options: [
+                ['block', '直接拒绝并隐藏'],
+                ['review', '转人工审核'],
+              ],
+              hint: '涉政类不受此项影响，始终直接拒绝',
+            },
+            {
+              key: 'reviewMode',
+              label: 'AI 审核模式',
+              type: 'select',
+              options: [
+                ['off', '关闭（全部放行）'],
+                ['rules', '仅本地规则'],
+                ['ai', '规则 + AI'],
+              ],
+            },
+            {
+              key: 'aiModel',
+              label: 'AI 模型名',
+              type: 'text',
+              hint: '如 deepseek-chat；服务商与密钥在 Cloudflare 环境变量里配',
+            },
+            {
+              key: 'aiFallback',
+              label: 'AI 不可用时',
+              type: 'select',
+              options: [
+                ['pending', '转人工审核'],
+                ['publish', '直接发布'],
+              ],
+            },
+            { key: 'autoBlock', label: '自动封禁', type: 'bool' },
+            { key: 'strikeLimit', label: '违规多少次自动封禁', type: 'number', min: 1, max: 20 },
+            { key: 'blockDays', label: '封禁天数', type: 'number', min: 0, max: 3650 },
+            {
+              key: 'keepRejected',
+              label: '违规评论留档',
+              type: 'bool',
+              hint: '关闭后违规内容完全不留存，只记违规次数',
+            },
+            { key: 'maxRejectedPerPost', label: '每篇最多留档条数', type: 'number', min: 0, max: 2000 },
+          ],
+        },
+        {
+          group: '展示',
+          items: [
+            { key: 'pageSize', label: '前台默认显示条数', type: 'number', min: 1, max: 100 },
+            { key: 'collapseChars', label: '超过多少字折叠', type: 'number', min: 50, max: 5000 },
+            {
+              key: 'recordIp',
+              label: '记录 IP 哈希',
+              type: 'bool',
+              hint: '关闭后 IP 维度配额失效',
+            },
+          ],
+        },
+      ];
+
+      const ALL_SETTING_FIELDS = SETTINGS_SCHEMA.flatMap((group) => group.items);
+
+      function showSettingsView() {
+        showView('settings-view');
+        loadSettings().catch((e) => toast((e as Error).message, 'error'));
+      }
+
+      async function loadSettings() {
+        const data = await api('/api/admin/settings');
+        const ai = data.ai ?? {};
+        $('s-ai-status').textContent = ai.configured
+          ? `AI 已就绪（${ai.provider} · ${ai.model}）`
+          : 'AI 未配置：评论会转人工审核';
+        renderSettings(data.config ?? {});
+      }
+
+      function renderSettings(config: Record<string, any>) {
+        const box = $('settings-form');
+        box.innerHTML = '';
+
+        for (const group of SETTINGS_SCHEMA) {
+          const section = document.createElement('section');
+          section.className = 'settings-group';
+
+          const title = document.createElement('h3');
+          title.textContent = group.group;
+          section.appendChild(title);
+
+          for (const field of group.items) {
+            const row = document.createElement('div');
+            row.className = 'settings-row';
+
+            const label = document.createElement('label');
+            label.className = 'settings-label';
+
+            const name = document.createElement('span');
+            name.textContent = field.label;
+            label.appendChild(name);
+
+            if (field.hint) {
+              const hint = document.createElement('small');
+              hint.textContent = field.hint;
+              label.appendChild(hint);
+            }
+
+            let control: HTMLElement;
+
+            if (field.type === 'bool') {
+              const cb = document.createElement('input');
+              cb.type = 'checkbox';
+              cb.checked = Boolean(config[field.key]);
+              cb.dataset.key = field.key;
+              control = cb;
+            } else if (field.type === 'select') {
+              const select = document.createElement('select');
+              for (const [value, text] of field.options ?? []) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                if (String(config[field.key]) === value) option.selected = true;
+                select.appendChild(option);
+              }
+              select.dataset.key = field.key;
+              control = select;
+            } else if (field.type === 'number') {
+              const input = document.createElement('input');
+              input.type = 'number';
+              input.min = String(field.min ?? 0);
+              input.max = String(field.max ?? 9999);
+              input.value = String(config[field.key] ?? '');
+              input.dataset.key = field.key;
+              control = input;
+            } else {
+              const input = document.createElement('input');
+              input.type = 'text';
+              input.value = String(config[field.key] ?? '');
+              input.dataset.key = field.key;
+              control = input;
+            }
+
+            row.append(label, control);
+            section.appendChild(row);
+          }
+
+          box.appendChild(section);
+        }
+      }
+
+      async function saveSettings() {
+        const patch: Record<string, unknown> = {};
+
+        for (const element of Array.from(
+          $('settings-form').querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-key]')
+        )) {
+          const key = element.dataset.key ?? '';
+          const field = ALL_SETTING_FIELDS.find((item) => item.key === key);
+          if (!field) continue;
+
+          if (field.type === 'bool') {
+            patch[key] = (element as HTMLInputElement).checked;
+          } else if (field.type === 'number') {
+            patch[key] = Number((element as HTMLInputElement).value);
+          } else {
+            patch[key] = element.value;
+          }
+        }
+
+        try {
+          const data = await api('/api/admin/settings', {
+            method: 'PUT',
+            body: JSON.stringify(patch),
+          });
+          const ai = data.ai ?? {};
+          $('s-ai-status').textContent = ai.configured
+            ? `AI 已就绪（${ai.provider} · ${ai.model}）`
+            : 'AI 未配置：评论会转人工审核';
+          renderSettings(data.config ?? {});
+          toast('已保存，最多 1 分钟生效', 'success');
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      /* ---------- 违禁词 ---------- */
+
+      function showWordlistView() {
+        showView('wordlist-view');
+        loadWordlist().catch((e) => toast((e as Error).message, 'error'));
+      }
+
+      async function loadWordlist() {
+        const data = await api('/api/admin/wordlist');
+        renderWordlist(data);
+      }
+
+      function renderWordlist(data: any) {
+        const box = $('wordlist-form');
+        box.innerHTML = '';
+
+        const categories: Record<string, any> = data.wordlist?.categories ?? {};
+        const meta = new Map<string, any>();
+        for (const item of data.categories ?? []) meta.set(item.key, item);
+
+        let total = 0;
+        for (const entry of Object.values<any>(categories)) {
+          total += Array.isArray(entry?.words) ? entry.words.length : 0;
+        }
+        $('w-summary').textContent = `共 ${total} 个词 · ${Object.keys(categories).length} 类`;
+
+        for (const [key, entry] of Object.entries<any>(categories)) {
+          const info = meta.get(key) ?? {};
+          const card = document.createElement('section');
+          card.className = 'wordlist-card';
+
+          const header = document.createElement('header');
+
+          const toggle = document.createElement('label');
+          toggle.className = 'wordlist-toggle';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = entry?.enabled !== false;
+          checkbox.dataset.enabled = key;
+          toggle.append(checkbox, document.createTextNode(` ${info.label ?? key}`));
+
+          const note = document.createElement('span');
+          note.className = 'muted-note';
+          const count = Array.isArray(entry?.words) ? entry.words.length : 0;
+          note.textContent = `${count} 个词${info.hard ? ' · 命中即拒，不受待审模式影响' : ''}`;
+
+          header.append(toggle, note);
+
+          const textarea = document.createElement('textarea');
+          textarea.rows = 6;
+          textarea.spellcheck = false;
+          textarea.dataset.words = key;
+          textarea.value = (entry?.words ?? []).join('\n');
+
+          card.append(header, textarea);
+          box.appendChild(card);
+        }
+      }
+
+      async function saveWordlist(reset: boolean) {
+        try {
+          let body: unknown = { reset: true };
+
+          if (!reset) {
+            const categories: Record<string, any> = {};
+
+            for (const textarea of Array.from(
+              $('wordlist-form').querySelectorAll<HTMLTextAreaElement>('[data-words]')
+            )) {
+              const key = textarea.dataset.words ?? '';
+              if (!key) continue;
+
+              const words = textarea.value
+                .split('\n')
+                .map((word) => word.trim())
+                .filter(Boolean);
+
+              const enabledEl = $('wordlist-form').querySelector<HTMLInputElement>(
+                `[data-enabled="${key}"]`
+              );
+
+              categories[key] = { enabled: enabledEl ? enabledEl.checked : true, words };
+            }
+
+            body = { wordlist: { categories } };
+          }
+
+          await api('/api/admin/wordlist', { method: 'PUT', body: JSON.stringify(body) });
+          toast(reset ? '已恢复默认词表' : '词表已保存', 'success');
+          await loadWordlist();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      /* ---------- 用户管理 ---------- */
+
+      function showModerationView() {
+        showView('moderation-view');
+        loadModeration().catch((e) => toast((e as Error).message, 'error'));
+      }
+
+      async function loadModeration() {
+        const data = await api('/api/admin/moderation');
+        renderModeration(data);
+      }
+
+      function actionButton(label: string, handler: () => void): HTMLButtonElement {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = label;
+        btn.addEventListener('click', handler);
+        return btn;
+      }
+
+      async function deviceAction(deviceId: string, action: string, days?: number) {
+        if (action === 'delete' && !confirm('删除该设备档案？违规记录会一起消失。')) return;
+
+        try {
+          await api('/api/admin/moderation', {
+            method: 'PATCH',
+            body: JSON.stringify({ deviceId, action, days }),
+          });
+          toast('已更新', 'success');
+          await loadModeration();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      function renderModeration(data: any) {
+        const box = $('moderation-list');
+        const stats = data.stats ?? {};
+        $('m-stats').textContent = `设备 ${stats.total ?? 0} · 今日 ${stats.todayComments ?? 0} 条 · 封禁 ${stats.blocked ?? 0}`;
+
+        box.innerHTML = '';
+
+        const devices: any[] = data.devices ?? [];
+        if (devices.length === 0) {
+          box.innerHTML = '<div class="empty">还没有设备记录</div>';
+          return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'device-table';
+
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th>设备</th><th>最近昵称</th><th>首次</th><th>最近</th>
+            <th>总数</th><th>今日</th><th>违规</th><th>状态</th><th>操作</th>
+          </tr>`;
+
+        const tbody = document.createElement('tbody');
+
+        for (const device of devices) {
+          const tr = document.createElement('tr');
+
+          const statusCell = device.blocked
+            ? `<span class="badge badge-rejected">封禁至 ${new Date(device.blockedUntil).toLocaleDateString('zh-CN')}</span>`
+            : '<span class="badge badge-visible">正常</span>';
+
+          tr.innerHTML = `
+            <td class="mono" title="${escapeHtml(device.deviceId)}">${escapeHtml(device.shortId)}…</td>
+            <td>${escapeHtml(device.lastAuthor || '—')}</td>
+            <td>${new Date(device.firstSeen).toLocaleDateString('zh-CN')}</td>
+            <td>${new Date(device.lastSeen).toLocaleString('zh-CN')}</td>
+            <td>${device.total}</td>
+            <td>${device.todayCount}</td>
+            <td>${device.strikes}</td>
+            <td>${statusCell}</td>
+            <td class="device-actions"></td>
+          `;
+
+          const actions = tr.querySelector('.device-actions') as HTMLElement;
+
+          if (device.blocked) {
+            actions.appendChild(actionButton('解封', () => void deviceAction(device.deviceId, 'unblock')));
+          } else {
+            actions.appendChild(
+              actionButton('封禁 7 天', () => void deviceAction(device.deviceId, 'block', 7))
+            );
+            actions.appendChild(
+              actionButton('永久封禁', () => void deviceAction(device.deviceId, 'block', 3650))
+            );
+          }
+
+          actions.appendChild(
+            actionButton('清零违规', () => void deviceAction(device.deviceId, 'clear'))
+          );
+          actions.appendChild(
+            actionButton('删除档案', () => void deviceAction(device.deviceId, 'delete'))
+          );
+
+          tbody.appendChild(tr);
+        }
+
+        table.append(thead, tbody);
+        box.appendChild(table);
+      }
+
+      /* ---------- 事件绑定 ---------- */
+
       $('btn-comments').addEventListener('click', showCommentsView);
       $('btn-comments-back').addEventListener('click', showEditorView);
+
+      $('btn-settings').addEventListener('click', showSettingsView);
+      $('btn-settings-back').addEventListener('click', showEditorView);
+      $('btn-settings-save').addEventListener('click', () => void saveSettings());
+
+      $('btn-wordlist').addEventListener('click', showWordlistView);
+      $('btn-wordlist-back').addEventListener('click', showEditorView);
+      $('btn-wordlist-save').addEventListener('click', () => void saveWordlist(false));
+      $('btn-wordlist-reset').addEventListener('click', () => {
+        if (!confirm('恢复内置默认词表？后台自定义的词会丢失。')) return;
+        void saveWordlist(true);
+      });
+
+      $('btn-moderation').addEventListener('click', showModerationView);
+      $('btn-moderation-back').addEventListener('click', showEditorView);
+
+      for (const btn of Array.from($('c-filters').querySelectorAll('button'))) {
+        btn.addEventListener('click', () => {
+          for (const other of Array.from($('c-filters').querySelectorAll('button'))) {
+            other.classList.remove('active');
+          }
+          btn.classList.add('active');
+
+          commentsState.status = (btn as HTMLElement).dataset.status ?? 'all';
+          commentsState.selectedSlug = '';
+          $('c-list').classList.add('hidden');
+          $('c-empty').classList.remove('hidden');
+          loadCommentsAdmin().catch((e) => toast((e as Error).message, 'error'));
+        });
+      }
 
       /* ---------- 启动 ---------- */
 

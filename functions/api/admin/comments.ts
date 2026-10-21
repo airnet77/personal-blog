@@ -1,13 +1,20 @@
 /**
  * 评论管理接口（需要登录会话，由 _middleware.ts 统一拦截）
- *   GET    /api/admin/comments                 列出所有文章的评论
- *   PATCH  /api/admin/comments?slug=x&id=y     更新置顶/隐藏
- *   DELETE /api/admin/comments?slug=x&id=y     删除
+ *   GET    /api/admin/comments[?status=all|visible|pending|rejected]
+ *   PATCH  /api/admin/comments?slug=x&id=y   置顶 / 隐藏 / 改状态（通过待审、恢复违规）
+ *   DELETE /api/admin/comments?slug=x&id=y   彻底删除
  */
 import type { Env } from '../../lib/github';
-import { listAllComments, updateComment, deleteComment } from '../../lib/comments-store';
+import {
+  listAllComments,
+  statusOf,
+  updateComment,
+  deleteComment,
+  type CommentStatus,
+} from '../../lib/comments-store';
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+const STATUSES: CommentStatus[] = ['visible', 'pending', 'rejected'];
 
 function json(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -32,10 +39,26 @@ export const onRequest = async (context: any) => {
 
   try {
     if (request.method === 'GET') {
+      const statusParam = (url.searchParams.get('status') ?? 'all').trim();
+      const filter = STATUSES.includes(statusParam as CommentStatus)
+        ? (statusParam as CommentStatus)
+        : null;
+
       const posts = await listAllComments(env);
-      const total = posts.reduce((sum, p) => sum + p.total, 0);
-      const hidden = posts.reduce((sum, p) => sum + p.hidden, 0);
-      return json({ posts, total, hidden });
+      const stats = {
+        total: posts.reduce((sum, p) => sum + p.total, 0),
+        visible: posts.reduce((sum, p) => sum + p.visible, 0),
+        pending: posts.reduce((sum, p) => sum + p.pending, 0),
+        rejected: posts.reduce((sum, p) => sum + p.rejected, 0),
+        hidden: posts.reduce((sum, p) => sum + p.hidden, 0),
+      };
+
+      const filtered = posts.map((post) => ({
+        ...post,
+        comments: filter ? post.comments.filter((c) => statusOf(c) === filter) : post.comments,
+      }));
+
+      return json({ posts: filtered, stats, status: filter ?? 'all' });
     }
 
     if (request.method === 'PATCH') {
@@ -50,9 +73,17 @@ export const onRequest = async (context: any) => {
         return json({ error: '请求格式错误' }, 400);
       }
 
-      const patch: { pinned?: boolean; hidden?: boolean } = {};
+      const patch: { pinned?: boolean; hidden?: boolean; status?: CommentStatus } = {};
       if (typeof payload.pinned === 'boolean') patch.pinned = payload.pinned;
       if (typeof payload.hidden === 'boolean') patch.hidden = payload.hidden;
+
+      if (typeof payload.status === 'string') {
+        const status = payload.status as CommentStatus;
+        if (!STATUSES.includes(status)) {
+          return json({ error: '状态非法' }, 400);
+        }
+        patch.status = status;
+      }
 
       if (Object.keys(patch).length === 0) {
         return json({ error: '没有可更新的字段' }, 400);
