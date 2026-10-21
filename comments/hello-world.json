@@ -152,6 +152,18 @@
       "deviceId": "cccc0000cccc0000cccc0000cccc0001",
       "ipHash": "12ca17b4",
       "reviewReason": "涉政"
+    },
+    {
+      "id": "c_1792600337429_vsz9",
+      "author": "tester",
+      "content": "共产党 2",
+      "createdAt": 1792600337429,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "cccc0000cccc0000cccc0000cccc0001",
+      "ipHash": "12ca17b4",
+      "reviewReason": "涉政"
     }
   ]
 }
