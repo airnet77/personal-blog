@@ -1,0 +1,36 @@
+---
+/**
+ * 标签总览：所有标签及文章数量。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllTags } from '../../lib/posts';
+
+const tags = await getAllTags();
+---
+
+<BaseLayout title="标签" description="全部标签">
+  <header class="pb-8">
+    <h1 class="text-2xl font-bold tracking-tight">标签</h1>
+    <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">共 {tags.length} 个标签</p>
+  </header>
+
+  {
+    tags.length > 0 ? (
+      <ul class="flex flex-wrap gap-3">
+        {tags.map(({ tag, count }) => (
+          <li>
+            <a
+              href={`/tags/${encodeURIComponent(tag)}/`}
+              class="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-1.5 text-sm text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-600 dark:hover:text-zinc-100"
+            >
+              {tag}
+              <span class="text-xs text-zinc-400 dark:text-zinc-500">{count}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="py-6 text-zinc-500 dark:text-zinc-400">还没有标签。</p>
+    )
+  }
+</BaseLayout>

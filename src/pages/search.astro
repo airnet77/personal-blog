@@ -1,0 +1,43 @@
+---
+/**
+ * 站内搜索页。
+ * 索引由 Pagefind 在构建结束后生成，运行时纯前端查询，无后端。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PagefindConfig from 'astro-pagefind/components/PagefindConfig.astro';
+---
+
+<BaseLayout title="搜索" description="搜索站内文章">
+  <header class="pb-8">
+    <h1 class="text-2xl font-bold tracking-tight">搜索</h1>
+    <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      输入关键词，检索全部已发布文章。
+    </p>
+  </header>
+
+  <PagefindConfig />
+
+  <div class="pagefind-search">
+    <pagefind-searchbox></pagefind-searchbox>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  /* Pagefind 组件适配站点的明暗主题 */
+  .pagefind-search {
+    --pagefind-ui-primary: #18181b;
+    --pagefind-ui-text: #3f3f46;
+    --pagefind-ui-background: #ffffff;
+    --pagefind-ui-border: #e4e4e7;
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 8px;
+    --pagefind-ui-font: inherit;
+  }
+
+  .dark .pagefind-search {
+    --pagefind-ui-primary: #fafafa;
+    --pagefind-ui-text: #d4d4d8;
+    --pagefind-ui-background: #09090b;
+    --pagefind-ui-border: #27272a;
+  }
+</style>

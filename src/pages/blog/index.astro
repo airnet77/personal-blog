@@ -1,0 +1,26 @@
+---
+/**
+ * 文章列表页。
+ * 目前文章少，不做分页；文章变多后再引入 paginate。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPublishedPosts } from '../../lib/posts';
+
+const posts = await getPublishedPosts();
+---
+
+<BaseLayout title="文章" description="全部文章">
+  <header class="pb-8">
+    <h1 class="text-2xl font-bold tracking-tight">文章</h1>
+    <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">共 {posts.length} 篇</p>
+  </header>
+
+  {
+    posts.length > 0 ? (
+      posts.map((post) => <PostCard post={post} />)
+    ) : (
+      <p class="py-6 text-zinc-500 dark:text-zinc-400">还没有文章。</p>
+    )
+  }
+</BaseLayout>

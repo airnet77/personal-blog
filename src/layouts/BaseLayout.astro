@@ -1,0 +1,71 @@
+---
+/**
+ * 全站页面骨架。
+ * 职责：<html> 语言、SEO meta、canonical、防闪烁主题脚本、页头页脚。
+ */
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION, SITE_URL, SITE_LANG } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /**
+   * 是否允许 Pagefind 索引本页。
+   * 只有文章详情页设 true；列表页、搜索页等保持 false，避免搜索结果重复。
+   */
+  searchable?: boolean;
+}
+
+const { title, description = SITE_DESCRIPTION, searchable = false } = Astro.props;
+
+const pageTitle = title ? `${title} · ${SITE_TITLE}` : SITE_TITLE;
+const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+---
+
+<!doctype html>
+<html lang={SITE_LANG}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <meta name="generator" content={Astro.generator} />
+
+    {/* 必须内联且尽早执行：在样式生效前决定明暗，避免首屏闪白 */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'dark' || (!stored && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {
+          /* localStorage 不可用时静默降级为亮色 */
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <div class="mx-auto flex min-h-screen max-w-3xl flex-col px-5">
+      <Header />
+      <main class="flex-1 py-10" data-pagefind-ignore={searchable ? undefined : ''}>
+        <slot />
+      </main>
+      <Footer />
+    </div>
+  </body>
+</html>

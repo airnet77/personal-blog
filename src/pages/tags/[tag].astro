@@ -1,0 +1,32 @@
+---
+/**
+ * 单个标签下的文章列表。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getAllTags, getPostsByTag } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const tags = await getAllTags();
+
+  return tags.map(({ tag }) => ({
+    params: { tag },
+    props: { tag },
+  }));
+}
+
+const { tag } = Astro.props;
+const posts = await getPostsByTag(tag);
+---
+
+<BaseLayout title={`标签：${tag}`} description={`标签「${tag}」下的所有文章`}>
+  <header class="pb-8">
+    <p class="text-sm text-zinc-500 dark:text-zinc-400">
+      <a href="/tags/" class="hover:underline">标签</a> /
+    </p>
+    <h1 class="mt-1 text-2xl font-bold tracking-tight">#{tag}</h1>
+    <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">共 {posts.length} 篇</p>
+  </header>
+
+  {posts.map((post) => <PostCard post={post} />)}
+</BaseLayout>

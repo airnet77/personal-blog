@@ -1,0 +1,35 @@
+---
+/**
+ * 关于页。修改自我介绍直接改这里的正文。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_TITLE, SITE_AUTHOR } from '../consts';
+---
+
+<BaseLayout title="关于" description={`关于 ${SITE_TITLE}`}>
+  <article class="prose prose-zinc max-w-none dark:prose-invert">
+    <h1>关于</h1>
+
+    <p>
+      你好，我是 <strong>{SITE_AUTHOR}</strong>。
+    </p>
+
+    <p>
+      这里是我的个人博客，用来记录技术笔记与生活片段。内容以 Markdown 文件形式保存在
+      Git 仓库里，因此每篇文章的修改历史都可以追溯。
+    </p>
+
+    <h2>关于这个站点</h2>
+
+    <ul>
+      <li>框架：Astro（纯静态生成，无服务端运行时）</li>
+      <li>样式：Tailwind CSS</li>
+      <li>托管：Cloudflare Pages（免费额度内）</li>
+      <li>内容：Markdown 文件，Git 即 CMS</li>
+    </ul>
+
+    <p>
+      如果你想联系我，可以修改 <code>src/consts.ts</code> 里的社交链接，把邮箱或主页地址放进去。
+    </p>
+  </article>
+</BaseLayout>

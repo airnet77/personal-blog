@@ -1,0 +1,17 @@
+---
+/**
+ * 页脚：版权信息与站点署名。
+ */
+import { SITE_AUTHOR } from '../consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-zinc-200 py-6 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <p>© {year} {SITE_AUTHOR}</p>
+    <p>
+      Powered by <a class="underline hover:text-zinc-900 dark:hover:text-zinc-100" href="https://astro.build">Astro</a>
+    </p>
+  </div>
+</footer>

@@ -1,0 +1,25 @@
+---
+/**
+ * 内容管理后台（Sveltia CMS）。
+ *
+ * 独立页面，不使用站点布局；不索引、不进 sitemap、不进搜索结果。
+ * 地址：/admin/
+ *
+ * 安装说明见 public/admin/config.yml 顶部注释。
+ */
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>内容管理</title>
+  </head>
+  <body data-pagefind-ignore>
+    <script>
+      import '@sveltia/cms';
+    </script>
+  </body>
+</html>

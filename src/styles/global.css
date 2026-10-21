@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/*
+ * 暗色模式通过 .dark 类控制（而非跟随系统媒体查询），
+ * 这样用户手动切换后能记住选择，也便于页头按钮操作。
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* 中文字体栈：优先系统字体，避免加载境外字体 CDN */
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
+    "Source Han Sans SC", "WenQuanYi Micro Hei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 中文正文排版：行高与段距略大于英文默认值 */
+  .prose {
+    line-height: 1.85;
+  }
+
+  .prose p {
+    margin-bottom: 1.15em;
+  }
+}

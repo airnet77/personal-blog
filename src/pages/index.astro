@@ -1,0 +1,46 @@
+---
+/**
+ * 首页：站点介绍 + 最新文章。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getPublishedPosts } from '../lib/posts';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const posts = await getPublishedPosts();
+const recent = posts.slice(0, 5);
+---
+
+<BaseLayout>
+  <section class="pb-12">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{SITE_TITLE}</h1>
+    <p class="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+      {SITE_DESCRIPTION}
+    </p>
+  </section>
+
+  <section>
+    <h2 class="mb-2 text-sm font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-500">
+      最新文章
+    </h2>
+
+    {
+      recent.length > 0 ? (
+        recent.map((post) => <PostCard post={post} />)
+      ) : (
+        <p class="py-6 text-zinc-500 dark:text-zinc-400">还没有文章。</p>
+      )
+    }
+
+    {
+      posts.length > recent.length && (
+        <a
+          href="/blog/"
+          class="mt-6 inline-block text-sm text-zinc-600 underline-offset-4 hover:underline dark:text-zinc-400"
+        >
+          查看全部 {posts.length} 篇文章 →
+        </a>
+      )
+    }
+  </section>
+</BaseLayout>

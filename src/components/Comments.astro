@@ -1,0 +1,106 @@
+---
+/**
+ * 评论组件（Giscus，基于 GitHub Discussions）。
+ *
+ * 设计为可插拔模块（AGENTS.md R4）：未启用时渲染为空，不影响页面其余部分。
+ * 启用步骤见 src/consts.ts 的 GISCUS 注释。
+ */
+import { GISCUS } from '../consts';
+
+const enabled = GISCUS.enabled;
+---
+
+{
+  enabled && (
+    <section class="mt-16 border-t border-zinc-200 pt-8 dark:border-zinc-800">
+      <h2 class="mb-6 text-lg font-semibold tracking-tight">评论</h2>
+      <div id="giscus-container" class="min-h-[140px]">
+        <noscript>评论需要启用 JavaScript。</noscript>
+      </div>
+    </section>
+  )
+}
+
+{
+  enabled && (
+    <script
+      is:inline
+      define:vars={{
+        repo: GISCUS.repo,
+        repoId: GISCUS.repoId,
+        category: GISCUS.category,
+        categoryId: GISCUS.categoryId,
+        mapping: GISCUS.mapping,
+        reactionsEnabled: GISCUS.reactionsEnabled,
+        inputPosition: GISCUS.inputPosition,
+        lang: GISCUS.lang,
+        themeLight: GISCUS.theme.light,
+        themeDark: GISCUS.theme.dark,
+      }}
+    >
+      (function () {
+        var el = document.getElementById('giscus-container');
+        if (!el) return;
+
+        var loaded = false;
+
+        function currentTheme() {
+          return document.documentElement.classList.contains('dark') ? themeDark : themeLight;
+        }
+
+        function load() {
+          if (loaded) return;
+          loaded = true;
+
+          var s = document.createElement('script');
+          s.src = 'https://giscus.app/client.js';
+          s.setAttribute('data-repo', repo);
+          s.setAttribute('data-repo-id', repoId);
+          s.setAttribute('data-category', category);
+          s.setAttribute('data-category-id', categoryId);
+          s.setAttribute('data-mapping', mapping);
+          s.setAttribute('data-reactions-enabled', reactionsEnabled);
+          s.setAttribute('data-input-position', inputPosition);
+          s.setAttribute('data-theme', currentTheme());
+          s.setAttribute('data-lang', lang);
+          s.setAttribute('data-loading', 'lazy');
+          s.crossOrigin = 'anonymous';
+          s.async = true;
+
+          // 加载失败时静默隐藏，不影响正文阅读
+          s.onerror = function () {
+            el.style.display = 'none';
+          };
+
+          el.appendChild(s);
+        }
+
+        // 进入视口附近才加载，避免拖慢首屏
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              if (entries.some(function (e) { return e.isIntersecting; })) {
+                io.disconnect();
+                load();
+              }
+            },
+            { rootMargin: '400px' }
+          );
+          io.observe(el);
+        } else {
+          load();
+        }
+
+        // 用户切换明暗主题时，同步通知 giscus iframe
+        new MutationObserver(function () {
+          var iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe || !iframe.contentWindow) return;
+          iframe.contentWindow.postMessage(
+            { giscus: { setConfig: { theme: currentTheme() } } },
+            'https://giscus.app'
+          );
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      })();
+    </script>
+  )
+}

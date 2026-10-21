@@ -1,0 +1,81 @@
+# Sveltia CMS 配置
+#
+# 仓库已配置为：airnet77/personal-blog
+#
+# 登录方式：令牌（Access Token）
+#   第一次打开 /admin/ 时，点「Sign in with Token」，
+#   按提示在 GitHub 生成一个只授权本仓库的令牌并粘贴进去。
+#   令牌保存在你自己浏览器的 localStorage 里，不经过任何服务器。
+#
+# 图片上传位置：src/assets/blog/
+#   正文里自动插入相对路径 ../../assets/blog/xxx.png，
+#   构建时会由 Astro 自动压缩优化。
+
+backend:
+  name: github
+  repo: airnet77/personal-blog
+  branch: main
+
+# 界面语言
+locale: zh-CN
+
+# 媒体（图片）存储
+media_folder: src/assets/blog
+public_folder: ../../assets/blog
+
+# 内容集合：一个「文章」集合，对应 src/content/blog/*.md
+collections:
+  - name: blog
+    label: 文章
+    label_singular: 文章
+    folder: src/content/blog
+    create: true
+    slug: '{{slug}}'
+    preview_path: blog/{{slug}}/
+    sortable_fields: ['pubDate', 'title']
+    fields:
+      - name: title
+        label: 标题
+        widget: string
+
+      - name: description
+        label: 摘要
+        widget: text
+        hint: 显示在列表页和搜索结果里，建议 50–160 字
+
+      - name: pubDate
+        label: 发布日期
+        widget: datetime
+        date_format: 'YYYY-MM-DD'
+        time_format: false
+        format: 'YYYY-MM-DD'
+
+      - name: updatedDate
+        label: 更新日期
+        widget: datetime
+        required: false
+        date_format: 'YYYY-MM-DD'
+        time_format: false
+        format: 'YYYY-MM-DD'
+
+      - name: tags
+        label: 标签
+        widget: list
+        required: false
+        default: []
+        hint: 回车分隔，例如：Astro、前端
+
+      - name: draft
+        label: 存为草稿
+        widget: boolean
+        default: false
+        hint: 勾选后这篇文章不会出现在任何页面、RSS 和搜索结果里
+
+      - name: cover
+        label: 封面图
+        widget: image
+        required: false
+
+      - name: body
+        label: 正文
+        widget: markdown
