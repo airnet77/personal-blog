@@ -24,7 +24,8 @@
 | 搜索 | astro-pagefind / Pagefind | 2.0.1 / 1.5.2 | 构建时生成静态索引，运行时零后端 |
 | RSS | @astrojs/rss | 4.0.19 | 输出 `/rss.xml` |
 | Sitemap | @astrojs/sitemap | 3.7.4 | 输出 `/sitemap-index.xml` |
-| 评论 | Giscus | 原生 script | 基于 GitHub Discussions，无服务器 |
+| 评论 | 自建（Pages Functions + GitHub 文件） | — | 数据存仓库 `comments/`，四道审核链，参数与词表都在后台改 |
+| 评论 AI | 可插拔（OpenAI 兼容 / Workers AI） | — | 靠 `AI_PROVIDER` + `AI_BASE_URL` + `AI_API_KEY` 切换，不锁供应商 |
 | 后台 | 自研 WebUI + Pages Functions | — | `/admin/` 网页界面，服务端代理 GitHub，密码登录 |
 | 后台（回退） | @sveltia/cms | 0.248.1 | `config.yml` 保留，页面已停用 |
 | 托管 | Cloudflare Pages | — | Direct Upload（`wrangler pages deploy`），免费 `*.pages.dev` 子域 |
@@ -112,9 +113,18 @@ src/
   lib/           数据访问层（文章过滤、标签聚合、日期格式化等纯函数）
   styles/        全局 CSS（Tailwind 入口与主题变量）
   consts.ts      站点名、SITE_URL、GISCUS 等常量
+comments/         评论数据（运行时由 Pages Functions 写入仓库）
+  <slug>.json     每篇文章的评论（visible / pending / rejected 三态）
+  _config.json    评论开关与数值，由后台「评论设置」维护
+  _wordlist.json  七类违禁词，由后台「违禁词」维护
+  _moderation.json 设备台账（配额、违规次数、封禁），由后台「用户管理」维护
 functions/        Pages Functions（仅 /api/*，后台服务端）
-  api/           路由端点：login / logout / posts / upload / health
-  lib/           auth（会话签名）、github（GitHub API）、frontmatter（元数据读写）
+  api/           路由端点：login / logout / posts / upload / health / comments / admin/*
+  lib/           auth（会话签名）、github（GitHub API）、frontmatter（元数据读写）、
+                 json-store（通用 JSON 读写）、comment-config（配置）、comments-store（评论）、
+                 wordlist-store + word-filter + banned-words（违禁词）、
+                 markdown-guard（只许文字）、review-rules + ai-review（审核）、
+                 moderation（台账与封禁）、device（设备指纹与 IP 哈希）
 public/          原样拷贝的静态资源（favicon）
 public/admin/    后台样式 app.css 与 Sveltia 的 config.yml（回退用）
 .github/         GitHub Actions 自动部署工作流
@@ -124,6 +134,15 @@ docs/            流程与协作文档
 数据获取统一走 `src/lib/posts.ts`，组件只接收 props。
 
 新增顶层目录前先说明理由。不要为「以后可能用到」提前建空目录或空文件。
+
+### 评论治理要点
+
+- **审核顺序固定**：总开关 → 蜜罐 → 设备识别 → 封禁/配额/频率 → 长度 → 违禁词（涉政硬拒）→ 只许文字 → 本地规则 → AI。
+- **四种状态**：`visible`（展示）/ `pending`（等人工）/ `rejected`（违规，前台永不展示、后台留档）/ `hidden`（手动隐藏）。
+- **涉政一刀切**：命中 `politics` 词表或 AI 判涉政，一律 `rejected`，不受「转待审」模式影响。
+- **只许文字**：评论禁止链接、图片、HTML、裸 URL、控制字符；服务端 `markdown-guard` 是第一道，前端 DOMPurify 白名单是第二道。
+- **AI 拿不准就转人工**：模型输出 `review`、返回非 JSON、超时或额度耗尽 → `pending`（除非后台把降级策略改成直接发布）。
+- **所有参数都别手改 JSON**：开关、数值、词表一律走后台；删掉 `_config.json` / `_wordlist.json` 即恢复内置默认。
 
 ---
 
