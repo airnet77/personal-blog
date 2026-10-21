@@ -10,10 +10,8 @@
       "words": []
     },
     "gambling": {
-      "enabled": false,
-      "words": [
-        "测试专用赌词"
-      ]
+      "enabled": true,
+      "words": []
     },
     "drugs": {
       "enabled": true,
