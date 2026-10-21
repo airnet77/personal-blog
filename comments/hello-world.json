@@ -67,6 +67,18 @@
       "deviceId": "dddd0000dddd0000dddd0000dddd0005",
       "ipHash": "12ca17b4",
       "reviewReason": "AI 暂不可用，转人工审核"
+    },
+    {
+      "id": "c_1792600518848_pggw",
+      "author": "ai-tester",
+      "content": "服务挂测试，模拟接口报错",
+      "createdAt": 1792600518848,
+      "pinned": false,
+      "hidden": false,
+      "status": "pending",
+      "deviceId": "dddd0000dddd0000dddd0000dddd0006",
+      "ipHash": "12ca17b4",
+      "reviewReason": "AI 暂不可用，转人工审核"
     }
   ]
 }
