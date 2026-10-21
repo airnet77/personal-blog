@@ -1,107 +1,225 @@
 ---
 /**
- * 评论组件（Giscus，基于 GitHub Discussions）。
+ * 评论区（自建，数据存 GitHub 仓库的 comments/ 目录）。
  *
- * 设计为可插拔模块（AGENTS.md R4）：未启用时渲染为空，不影响页面其余部分。
- * 配置见 src/consts.ts 的 GISCUS。
+ * 浏览器只访问 /api/comments，不直连 GitHub，因此不受网络环境影响。
+ * 评论内容为 Markdown，渲染前统一用 DOMPurify 净化。
  */
-import { GISCUS } from '../consts';
-
-const enabled = GISCUS.enabled;
+const pathname = Astro.url.pathname;
+const slug = pathname.startsWith('/blog/')
+  ? pathname.replace(/^\/blog\//, '').replace(/\/$/, '')
+  : '';
 ---
 
 {
-  enabled && (
+  slug && (
     <section class="mt-16 border-t border-zinc-200 pt-8 dark:border-zinc-800">
       <h2 class="mb-2 text-lg font-semibold tracking-tight">评论</h2>
       <p class="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
-        使用 GitHub 账号登录后即可评论，支持 Markdown 语法。
+        无需登录，支持 Markdown 语法。
       </p>
-      <div id="giscus-container" style="min-height: 180px">
-        <p id="giscus-status" class="text-sm text-zinc-500 dark:text-zinc-400">
-          评论加载中…
-        </p>
-      </div>
+
+      <div id="comments-list" class="space-y-4" />
+      <p id="comments-status" class="text-sm text-zinc-500 dark:text-zinc-400">
+        加载中…
+      </p>
+
+      <form id="comment-form" class="mt-8 space-y-3" novalidate>
+        <div>
+          <label for="c-author" class="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">
+            昵称
+          </label>
+          <input
+            id="c-author"
+            type="text"
+            maxlength="30"
+            required
+            placeholder="怎么称呼你"
+            class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </div>
+
+        <div>
+          <label for="c-content" class="mb-1 block text-sm text-zinc-600 dark:text-zinc-400">
+            内容（支持 Markdown）
+          </label>
+          <textarea
+            id="c-content"
+            rows="4"
+            maxlength="2000"
+            required
+            placeholder="说点什么…"
+            class="w-full resize-y rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+        </div>
+
+        {/* 蜜罐字段：正常用户不可见，填写即判定为机器人 */}
+        <input
+          id="c-website"
+          type="text"
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+          class="hidden"
+        />
+
+        <div class="flex items-center gap-3">
+          <button
+            type="submit"
+            class="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          >
+            发表评论
+          </button>
+          <span id="comment-hint" class="text-sm text-zinc-500 dark:text-zinc-400"></span>
+        </div>
+      </form>
     </section>
   )
 }
 
-{
-  enabled && (
-    <script
-      is:inline
-      define:vars={{
-        repo: GISCUS.repo,
-        repoId: GISCUS.repoId,
-        category: GISCUS.category,
-        categoryId: GISCUS.categoryId,
-        mapping: GISCUS.mapping,
-        reactionsEnabled: GISCUS.reactionsEnabled,
-        inputPosition: GISCUS.inputPosition,
-        lang: GISCUS.lang,
-        themeLight: GISCUS.theme.light,
-        themeDark: GISCUS.theme.dark,
-      }}
-    >
-      (function () {
-        var container = document.getElementById('giscus-container');
-        var status = document.getElementById('giscus-status');
-        if (!container) return;
+<script>
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
 
-        function currentTheme() {
-          return document.documentElement.classList.contains('dark') ? themeDark : themeLight;
+  const slug = window.location.pathname.replace(/^\/blog\//, '').replace(/\/$/, '');
+  const listEl = document.getElementById('comments-list');
+  const statusEl = document.getElementById('comments-status');
+  const form = document.getElementById('comment-form') as HTMLFormElement | null;
+  const hintEl = document.getElementById('comment-hint');
+
+  function escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function relativeTime(ts: number): string {
+    const diff = Date.now() - ts;
+    const minute = 60_000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    if (diff < minute) return '刚刚';
+    if (diff < hour) return `${Math.floor(diff / minute)} 分钟前`;
+    if (diff < day) return `${Math.floor(diff / hour)} 小时前`;
+    if (diff < 30 * day) return `${Math.floor(diff / day)} 天前`;
+
+    const d = new Date(ts);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function renderComment(comment: any): HTMLElement {
+    const article = document.createElement('article');
+    article.className =
+      'rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800';
+
+    const safeAuthor = escapeHtml(String(comment.author ?? '匿名'));
+    const html = DOMPurify.sanitize(marked.parse(String(comment.content ?? '')) as string, {
+      USE_PROFILES: { html: true },
+    });
+
+    article.innerHTML = `
+      <header class="mb-2 flex flex-wrap items-center gap-2 text-sm">
+        <span class="font-medium text-zinc-900 dark:text-zinc-100">${safeAuthor}</span>
+        <span class="text-zinc-400 dark:text-zinc-500">${relativeTime(Number(comment.createdAt) || Date.now())}</span>
+        ${comment.pinned ? '<span class="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">置顶</span>' : ''}
+      </header>
+      <div class="prose prose-zinc max-w-none text-sm dark:prose-invert">${html}</div>
+    `;
+
+    return article;
+  }
+
+  function setStatus(text: string, isError = false) {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    (statusEl as HTMLElement).style.color = isError ? '#dc2626' : '';
+  }
+
+  async function load() {
+    if (!listEl) return;
+
+    try {
+      const res = await fetch(`/api/comments?slug=${encodeURIComponent(slug)}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || '加载失败');
+
+      const comments = Array.isArray(data.comments) ? data.comments : [];
+      listEl.innerHTML = '';
+
+      if (comments.length === 0) {
+        setStatus('还没有评论，来说两句。');
+        return;
+      }
+
+      setStatus('');
+      for (const comment of comments) {
+        listEl.appendChild(renderComment(comment));
+      }
+    } catch (err) {
+      setStatus(`评论加载失败：${(err as Error).message}`, true);
+    }
+  }
+
+  if (form) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const authorInput = document.getElementById('c-author') as HTMLInputElement;
+      const contentInput = document.getElementById('c-content') as HTMLTextAreaElement;
+      const websiteInput = document.getElementById('c-website') as HTMLInputElement;
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+      const author = authorInput.value.trim();
+      const content = contentInput.value.trim();
+
+      if (!author) {
+        if (hintEl) hintEl.textContent = '请填写昵称';
+        authorInput.focus();
+        return;
+      }
+      if (!content) {
+        if (hintEl) hintEl.textContent = '请填写内容';
+        contentInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      if (hintEl) hintEl.textContent = '提交中…';
+
+      try {
+        const res = await fetch('/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug,
+            author,
+            content,
+            website: websiteInput.value,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || '提交失败');
+
+        contentInput.value = '';
+        if (hintEl) hintEl.textContent = '已发表';
+        await load();
+
+        if (listEl.lastElementChild) {
+          listEl.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+      } catch (err) {
+        if (hintEl) hintEl.textContent = (err as Error).message;
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  }
 
-        function showStatus(text, isError) {
-          if (!status) return;
-          status.textContent = text;
-          status.style.color = isError ? '#dc2626' : '';
-        }
-
-        // 超时保护：15 秒内没有出现 iframe 就提示可能失败
-        var timer = setTimeout(function () {
-          if (!document.querySelector('iframe.giscus-frame')) {
-            showStatus('评论加载较慢或失败。请确认已安装 giscus App，或稍后刷新重试。', true);
-          }
-        }, 15000);
-
-        var s = document.createElement('script');
-        s.src = 'https://giscus.app/client.js';
-        s.setAttribute('data-repo', repo);
-        s.setAttribute('data-repo-id', repoId);
-        s.setAttribute('data-category', category);
-        s.setAttribute('data-category-id', categoryId);
-        s.setAttribute('data-mapping', mapping);
-        s.setAttribute('data-reactions-enabled', reactionsEnabled);
-        s.setAttribute('data-input-position', inputPosition);
-        s.setAttribute('data-theme', currentTheme());
-        s.setAttribute('data-lang', lang);
-        s.setAttribute('data-loading', 'eager');
-        s.crossOrigin = 'anonymous';
-        s.async = true;
-
-        s.onload = function () {
-          clearTimeout(timer);
-          showStatus('');
-        };
-
-        s.onerror = function () {
-          clearTimeout(timer);
-          showStatus('评论脚本加载失败，可能被网络拦截。', true);
-        };
-
-        document.body.appendChild(s);
-
-        // 用户切换明暗主题时，同步通知 giscus iframe
-        new MutationObserver(function () {
-          var iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe || !iframe.contentWindow) return;
-          iframe.contentWindow.postMessage(
-            { giscus: { setConfig: { theme: currentTheme() } } },
-            'https://giscus.app'
-          );
-        }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-      })();
-    </script>
-  )
-}
+  load();
+</script>

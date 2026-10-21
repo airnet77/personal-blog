@@ -4,8 +4,8 @@
 import { readCookie, verifySession } from '../lib/auth';
 import type { Env } from '../lib/github';
 
-/** 无需登录即可访问的路径（登出是幂等的，允许未登录调用） */
-const PUBLIC_PATHS = new Set(['/api/login', '/api/health', '/api/logout']);
+/** 无需登录即可访问的路径（读者端评论接口公开；管理接口 /api/admin/* 仍受保护） */
+const PUBLIC_PATHS = new Set(['/api/login', '/api/health', '/api/logout', '/api/comments']);
 
 export const onRequest = async (context: any) => {
   const { request, env, next } = context as {

@@ -18,6 +18,7 @@
     "@tailwindcss/vite": "4.3.3",
     "astro": "7.4.1",
     "astro-pagefind": "2.0.1",
+    "dompurify": "3.4.17",
     "marked": "18.1.1",
     "tailwindcss": "4.3.3",
     "yaml": "2.9.1"

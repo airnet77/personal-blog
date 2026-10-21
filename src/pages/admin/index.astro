@@ -33,6 +33,7 @@
         <span class="brand">内容管理</span>
         <nav>
           <button id="btn-new" class="primary">新建文章</button>
+          <button id="btn-comments">评论管理</button>
           <a href="/" target="_blank" rel="noopener"><button type="button">查看站点</button></a>
           <button id="btn-logout">退出</button>
         </nav>
@@ -105,6 +106,31 @@
               </div>
             </div>
           </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 评论管理 -->
+    <div id="comments-view" class="hidden">
+      <header class="app-header">
+        <span class="brand">评论管理</span>
+        <nav>
+          <span id="c-stats" style="color: var(--muted); font-size: 13px"></span>
+          <button id="btn-comments-back">返回文章</button>
+        </nav>
+      </header>
+
+      <div class="app-body">
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <span>文章</span>
+          </div>
+          <div id="c-post-list"></div>
+        </aside>
+
+        <section class="editor">
+          <div id="c-empty" class="empty">选择左侧文章查看评论</div>
+          <div id="c-list" class="editor-inner hidden"></div>
         </section>
       </div>
     </div>
@@ -432,6 +458,148 @@
           event.returnValue = '';
         }
       });
+
+      /* ---------- 评论管理 ---------- */
+
+      const commentsState = {
+        posts: [] as any[],
+        selectedSlug: '',
+      };
+
+      function showCommentsView() {
+        $('app-view').classList.add('hidden');
+        $('comments-view').classList.remove('hidden');
+        loadCommentsAdmin().catch((e) => toast((e as Error).message, 'error'));
+      }
+
+      function showEditorView() {
+        $('comments-view').classList.add('hidden');
+        $('app-view').classList.remove('hidden');
+      }
+
+      async function loadCommentsAdmin() {
+        const data = await api('/api/admin/comments');
+        commentsState.posts = data.posts ?? [];
+        $('c-stats').textContent = `共 ${data.total ?? 0} 条 · 隐藏 ${data.hidden ?? 0} 条`;
+        renderCommentPosts();
+
+        if (commentsState.selectedSlug) {
+          const still = commentsState.posts.find((p) => p.slug === commentsState.selectedSlug);
+          if (still) renderComments(still);
+        }
+      }
+
+      function renderCommentPosts() {
+        const box = $('c-post-list');
+        box.innerHTML = '';
+
+        if (commentsState.posts.length === 0) {
+          box.innerHTML = '<div class="empty">还没有任何评论</div>';
+          return;
+        }
+
+        for (const post of commentsState.posts) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'post-item' + (post.slug === commentsState.selectedSlug ? ' active' : '');
+          btn.innerHTML = `
+            <span class="t">${escapeHtml(post.slug)}</span>
+            <span class="m">
+              <span>${post.total} 条</span>
+              ${post.hidden ? `<span class="badge">隐藏 ${post.hidden}</span>` : ''}
+            </span>
+          `;
+          btn.addEventListener('click', () => selectCommentPost(post.slug));
+          box.appendChild(btn);
+        }
+      }
+
+      function selectCommentPost(slug: string) {
+        commentsState.selectedSlug = slug;
+        renderCommentPosts();
+        const post = commentsState.posts.find((p) => p.slug === slug);
+        renderComments(post);
+      }
+
+      function renderComments(post: any) {
+        const box = $('c-list');
+        $('c-empty').classList.add('hidden');
+        box.classList.remove('hidden');
+        box.innerHTML = '';
+
+        if (!post || post.comments.length === 0) {
+          box.innerHTML = '<div class="empty">这篇文章还没有评论</div>';
+          return;
+        }
+
+        for (const comment of post.comments) {
+          box.appendChild(renderCommentRow(post.slug, comment));
+        }
+      }
+
+      function renderCommentRow(slug: string, comment: any): HTMLElement {
+        const row = document.createElement('div');
+        row.className = 'comment-row';
+
+        const when = new Date(comment.createdAt).toLocaleString('zh-CN');
+        row.innerHTML = `
+          <div class="comment-meta">
+            <strong>${escapeHtml(comment.author)}</strong>
+            <span>${when}</span>
+            ${comment.pinned ? '<span class="badge">置顶</span>' : ''}
+            ${comment.hidden ? '<span class="badge">已隐藏</span>' : ''}
+          </div>
+          <div class="comment-body">${escapeHtml(comment.content).replace(/\n/g, '<br>')}</div>
+          <div class="comment-actions">
+            <button type="button" data-act="pin">${comment.pinned ? '取消置顶' : '置顶'}</button>
+            <button type="button" data-act="hide">${comment.hidden ? '恢复显示' : '隐藏'}</button>
+            <button type="button" data-act="delete" class="danger">删除</button>
+          </div>
+        `;
+
+        row.querySelector('[data-act="pin"]')!.addEventListener('click', () =>
+          updateComment(slug, comment.id, { pinned: !comment.pinned })
+        );
+        row.querySelector('[data-act="hide"]')!.addEventListener('click', () =>
+          updateComment(slug, comment.id, { hidden: !comment.hidden })
+        );
+        row.querySelector('[data-act="delete"]')!.addEventListener('click', () =>
+          removeComment(slug, comment.id)
+        );
+
+        return row;
+      }
+
+      async function updateComment(slug: string, id: string, patch: Record<string, boolean>) {
+        try {
+          await api(
+            `/api/admin/comments?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}`,
+            { method: 'PATCH', body: JSON.stringify(patch) }
+          );
+          toast('已更新', 'success');
+          await loadCommentsAdmin();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      async function removeComment(slug: string, id: string) {
+        if (!confirm('确定删除这条评论吗？')) return;
+
+        try {
+          await api(
+            `/api/admin/comments?slug=${encodeURIComponent(slug)}&id=${encodeURIComponent(id)}`,
+            { method: 'DELETE' }
+          );
+          toast('已删除', 'success');
+          await loadCommentsAdmin();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      $('btn-comments').addEventListener('click', showCommentsView);
+      $('btn-comments-back').addEventListener('click', showEditorView);
 
       /* ---------- 启动 ---------- */
 
