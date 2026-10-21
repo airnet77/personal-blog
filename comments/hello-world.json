@@ -8,6 +8,18 @@
       "createdAt": 1792598697653,
       "pinned": false,
       "hidden": false
+    },
+    {
+      "id": "c_1792600068757_brw8",
+      "author": "tester",
+      "content": "��֧�ֹ�����",
+      "createdAt": 1792600068757,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "0123456789abcdef0123456789abcdef",
+      "ipHash": "12ca17b4",
+      "reviewReason": "缺少文字内容"
     }
   ]
 }
