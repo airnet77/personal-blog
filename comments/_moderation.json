@@ -3,11 +3,11 @@
   "devices": {
     "0123456789abcdef0123456789abcdef": {
       "firstSeen": 1792600069856,
-      "lastSeen": 1792600074159,
-      "total": 2,
+      "lastSeen": 1792600079791,
+      "total": 3,
       "day": "2026-10-22",
-      "dayCount": 2,
-      "strikes": 1,
+      "dayCount": 3,
+      "strikes": 2,
       "blockedUntil": 0,
       "ipHashes": [
         "12ca17b4"
@@ -17,11 +17,17 @@
           "at": 1792600069856,
           "reason": "缺少文字内容",
           "slug": "hello-world"
+        },
+        {
+          "at": 1792600079791,
+          "reason": "不允许链接",
+          "slug": "hello-world"
         }
       ],
       "recentComments": [
         1792600069856,
-        1792600074159
+        1792600074159,
+        1792600079791
       ],
       "lastAuthor": "tester"
     }
