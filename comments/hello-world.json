@@ -128,6 +128,18 @@
       "deviceId": "22220a22220a22220a22220a",
       "ipHash": "496191e1",
       "reviewReason": "不允许 HTML 标签"
+    },
+    {
+      "id": "c_1792601052166_6vtl",
+      "author": "live-test",
+      "content": "http://example.com",
+      "createdAt": 1792601052166,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "22220b22220b22220b22220b",
+      "ipHash": "496191e1",
+      "reviewReason": "不允许网址"
     }
   ]
 }
