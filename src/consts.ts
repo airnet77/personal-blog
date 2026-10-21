@@ -13,7 +13,7 @@ export const SITE_LANG = 'zh-CN';
  * 部署到 Cloudflare Pages 拿到正式域名后改成真实地址，再推一版。
  * 注意：结尾不要带斜杠。
  */
-export const SITE_URL = 'https://personal-blog.pages.dev';
+export const SITE_URL = 'https://airnet-blog.pages.dev';
 
 /** 页头导航。顺序即显示顺序 */
 export const NAV_LINKS = [
