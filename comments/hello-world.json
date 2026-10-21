@@ -8,6 +8,18 @@
       "createdAt": 1792598697653,
       "pinned": false,
       "hidden": false
+    },
+    {
+      "id": "c_1792600276605_zpty",
+      "author": "tester",
+      "content": "我支持共产党",
+      "createdAt": 1792600276605,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "aaaa0000aaaa0000aaaa0000aaaa0001",
+      "ipHash": "12ca17b4",
+      "reviewReason": "涉政"
     }
   ]
 }
