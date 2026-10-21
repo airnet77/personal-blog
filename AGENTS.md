@@ -2,7 +2,7 @@
 
 > 本文件会被 AI 编码助手在每次会话自动加载。**开启新会话时，先读完本文件与 [`rules.md`](./rules.md) 再动手。**
 >
-> 当前状态：**阶段 4 已完成，站点已上线** → <https://airnet-blog.pages.dev>（Cloudflare Pages，Direct Upload 方式） —— 下一步阶段 5：验收与交接。
+> 当前状态：**站点已上线** → <https://airnet-blog.pages.dev>；**后台 WebUI 已完成**（`/admin/` + Pages Functions），待配置 Cloudflare 环境变量后启用。
 
 ---
 
@@ -25,7 +25,8 @@
 | RSS | @astrojs/rss | 4.0.19 | 输出 `/rss.xml` |
 | Sitemap | @astrojs/sitemap | 3.7.4 | 输出 `/sitemap-index.xml` |
 | 评论 | Giscus | 原生 script | 基于 GitHub Discussions，无服务器 |
-| 后台 | @sveltia/cms | 0.248.1 | 静态页面 + 令牌登录，直连 GitHub 仓库，无后端 |
+| 后台 | 自研 WebUI + Pages Functions | — | `/admin/` 网页界面，服务端代理 GitHub，密码登录 |
+| 后台（回退） | @sveltia/cms | 0.248.1 | `config.yml` 保留，页面已停用 |
 | 托管 | Cloudflare Pages | — | Direct Upload（`wrangler pages deploy`），免费 `*.pages.dev` 子域 |
 
 升级任何依赖前先说明理由。Astro 主版本升级（如 v7 → v8）必须单独评估破坏性变更，不在日常改动里顺带升级。
@@ -107,13 +108,17 @@ src/
   content/blog/  Markdown 文章，唯一内容来源
   layouts/       页面骨架；BaseLayout 承载 SEO 与主题切换
   pages/         路由，遵循 Astro 文件路由约定
-  pages/admin/   内容管理后台（Sveltia CMS），不索引、不进 sitemap
+  pages/admin/   内容管理后台 WebUI，不索引、不进 sitemap
   lib/           数据访问层（文章过滤、标签聚合、日期格式化等纯函数）
   styles/        全局 CSS（Tailwind 入口与主题变量）
   consts.ts      站点名、SITE_URL、GISCUS 等常量
-docs/            流程与协作文档
+functions/        Pages Functions（仅 /api/*，后台服务端）
+  api/           路由端点：login / logout / posts / upload / health
+  lib/           auth（会话签名）、github（GitHub API）、frontmatter（元数据读写）
 public/          原样拷贝的静态资源（favicon）
-public/admin/    后台配置 config.yml
+public/admin/    后台样式 app.css 与 Sveltia 的 config.yml（回退用）
+.github/         GitHub Actions 自动部署工作流
+docs/            流程与协作文档
 ```
 
 数据获取统一走 `src/lib/posts.ts`，组件只接收 props。
@@ -145,9 +150,10 @@ pnpm check     # astro check 类型检查
 ## 八、禁区
 
 - 不引入 React / Vue / Svelte 等 UI 框架（当前无 hydration 需求）
-- 不改成 SSR，不启用 `@astrojs/cloudflare` adapter（纯静态已足够）
+- 不把 Astro 改成 SSR，不启用 `@astrojs/cloudflare` adapter（纯静态已足够）
+  - 例外：`functions/` 下的 Pages Functions 是允许的，但**只能挂在 `/api/*`**，用于后台服务端逻辑，不得改变 Astro 的静态输出
 - 不引入数据库、KV、D1（内容就是 Git 里的文件）
-- 不提交任何密钥、token 或账号凭据
+- 不把任何令牌、密码、会话密钥写进代码或提交到仓库；一律走环境变量
 - 不在组件里硬编码站点 URL，一律走 `consts.ts` 的 `SITE_URL`
 - 不擅自修改 `package.json` 中锁定的版本号
 
@@ -155,4 +161,4 @@ pnpm check     # astro check 类型检查
 
 ## 九、细则
 
-编码、内容、样式、SEO、性能等**可逐条判断的规则**见 [`rules.md`](./rules.md)。提交前请过一遍其中的「第 10 节 Review 自查表」。
+编码、内容、样式、SEO、性能、服务端安全等**可逐条判断的规则**见 [`rules.md`](./rules.md)。提交前请过一遍其中的「第 11 节 Review 自查表」。

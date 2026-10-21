@@ -1,11 +1,7 @@
 ---
 /**
- * 内容管理后台（Sveltia CMS）。
- *
- * 独立页面，不使用站点布局；不索引、不进 sitemap、不进搜索结果。
- * 地址：/admin/
- *
- * 安装说明见 public/admin/config.yml 顶部注释。
+ * 博客内容管理后台（WebUI）。
+ * 独立页面，不使用站点布局；不索引、不进 sitemap。
  */
 ---
 
@@ -16,10 +12,438 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>内容管理</title>
+    <link rel="stylesheet" href="/admin/app.css" />
   </head>
   <body data-pagefind-ignore>
+    <!-- 登录 -->
+    <div id="login-view" class="login-wrap">
+      <form id="login-form" class="login-card">
+        <h1>内容管理</h1>
+        <p>输入管理密码以继续</p>
+        <div class="field">
+          <input type="password" id="password" placeholder="管理密码" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="primary" style="width: 100%">登录</button>
+      </form>
+    </div>
+
+    <!-- 主界面 -->
+    <div id="app-view" class="hidden">
+      <header class="app-header">
+        <span class="brand">内容管理</span>
+        <nav>
+          <button id="btn-new" class="primary">新建文章</button>
+          <a href="/" target="_blank" rel="noopener"><button type="button">查看站点</button></a>
+          <button id="btn-logout">退出</button>
+        </nav>
+      </header>
+
+      <div class="app-body">
+        <aside class="sidebar">
+          <div class="sidebar-head">
+            <span id="post-count">文章</span>
+            <button id="btn-refresh" style="padding: 2px 8px; font-size: 12px">刷新</button>
+          </div>
+          <div id="post-list"></div>
+        </aside>
+
+        <section class="editor">
+          <div id="editor-empty" class="empty">选择左侧文章进行编辑，或点右上角新建</div>
+
+          <div id="editor-form" class="editor-inner hidden">
+            <div class="editor-actions">
+              <button id="btn-save" class="primary">保存</button>
+              <button id="btn-delete" class="danger">删除</button>
+              <span class="spacer"></span>
+              <span id="dirty-hint" style="color: var(--muted); font-size: 12px"></span>
+            </div>
+
+            <div class="field">
+              <label for="f-title">标题</label>
+              <input type="text" id="f-title" />
+            </div>
+
+            <div class="field">
+              <label for="f-desc">摘要（显示在列表页与搜索结果里）</label>
+              <textarea id="f-desc" rows="2"></textarea>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="f-date">发布日期</label>
+                <input type="date" id="f-date" />
+              </div>
+              <div class="field">
+                <label for="f-tags">标签（逗号分隔）</label>
+                <input type="text" id="f-tags" placeholder="Astro, 前端" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="f-slug">文件名（slug，仅新建时可改）</label>
+                <input type="text" id="f-slug" placeholder="my-new-post" />
+              </div>
+              <div class="field">
+                <label>状态</label>
+                <label style="display: flex; align-items: center; gap: 6px; color: var(--text)">
+                  <input type="checkbox" id="f-draft" style="width: auto" />
+                  存为草稿（不会出现在站点上）
+                </label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="f-body">正文（Markdown）</label>
+              <div style="margin-bottom: 8px">
+                <input type="file" id="f-image" accept="image/*" class="hidden" />
+                <button type="button" id="btn-upload">插入图片</button>
+              </div>
+              <div class="markdown-panes">
+                <textarea id="f-body" placeholder="在这里写 Markdown…"></textarea>
+                <div id="preview" class="preview"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
     <script>
-      import '@sveltia/cms';
+      import { marked } from 'marked';
+
+      marked.setOptions({ gfm: true, breaks: false });
+
+      const $ = (id: string) => document.getElementById(id) as HTMLElement;
+
+      interface PostMeta {
+        slug: string;
+        sha: string;
+        title: string;
+        description: string;
+        pubDate: string;
+        tags: string[];
+        draft: boolean;
+      }
+
+      interface PostDetail extends PostMeta {
+        body: string;
+      }
+
+      const state = {
+        posts: [] as PostMeta[],
+        current: null as PostDetail | null,
+        isNew: false,
+        dirty: false,
+      };
+
+      function toast(message: string, kind: 'info' | 'success' | 'error' = 'info') {
+        const el = $('toast');
+        el.textContent = message;
+        el.className = `toast show ${kind === 'error' ? 'error' : kind === 'success' ? 'success' : ''}`;
+        window.clearTimeout((toast as any)._t);
+        (toast as any)._t = window.setTimeout(() => {
+          el.className = 'toast';
+        }, 2600);
+      }
+
+      async function api(path: string, options: RequestInit = {}): Promise<any> {
+        const isJson = options.body && !(options.body instanceof FormData);
+        const res = await fetch(path, {
+          credentials: 'same-origin',
+          ...options,
+          headers: {
+            ...(isJson ? { 'Content-Type': 'application/json' } : {}),
+            ...(options.headers ?? {}),
+          },
+        });
+
+        if (res.status === 401) {
+          showLogin();
+          throw new Error('登录已过期，请重新登录');
+        }
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `请求失败（${res.status}）`);
+        return data;
+      }
+
+      /* ---------- 视图切换 ---------- */
+
+      function showLogin() {
+        $('login-view').classList.remove('hidden');
+        $('app-view').classList.add('hidden');
+      }
+
+      function showApp() {
+        $('login-view').classList.add('hidden');
+        $('app-view').classList.remove('hidden');
+      }
+
+      /* ---------- 列表 ---------- */
+
+      async function loadPosts() {
+        const data = await api('/api/posts');
+        state.posts = data.posts ?? [];
+        $('post-count').textContent = `文章（${state.posts.length}）`;
+        renderList();
+      }
+
+      function renderList() {
+        const box = $('post-list');
+        box.innerHTML = '';
+
+        if (state.posts.length === 0) {
+          box.innerHTML = '<div class="empty">还没有文章，点右上角新建。</div>';
+          return;
+        }
+
+        for (const post of state.posts) {
+          const btn = document.createElement('button');
+          btn.className = 'post-item' + (state.current?.slug === post.slug ? ' active' : '');
+          btn.type = 'button';
+          btn.innerHTML = `
+            <span class="t">${escapeHtml(post.title || '(无标题)')}</span>
+            <span class="m">
+              <span>${escapeHtml(post.pubDate)}</span>
+              ${post.draft ? '<span class="badge">草稿</span>' : ''}
+            </span>
+          `;
+          btn.addEventListener('click', () => openPost(post.slug));
+          box.appendChild(btn);
+        }
+      }
+
+      function escapeHtml(text: string): string {
+        return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      /* ---------- 编辑器 ---------- */
+
+      function fillForm(post: PostDetail | null) {
+        const isNew = post === null;
+        const today = new Date().toISOString().slice(0, 10);
+
+        ($('f-title') as HTMLInputElement).value = post?.title ?? '';
+        ($('f-desc') as HTMLTextAreaElement).value = post?.description ?? '';
+        ($('f-date') as HTMLInputElement).value = post?.pubDate ?? today;
+        ($('f-tags') as HTMLInputElement).value = (post?.tags ?? []).join(', ');
+        ($('f-slug') as HTMLInputElement).value = post?.slug ?? '';
+        ($('f-slug') as HTMLInputElement).disabled = !isNew;
+        ($('f-draft') as HTMLInputElement).checked = post?.draft ?? false;
+        ($('f-body') as HTMLTextAreaElement).value = post?.body ?? '';
+
+        $('editor-empty').classList.add('hidden');
+        $('editor-form').classList.remove('hidden');
+        $('btn-delete').classList.toggle('hidden', isNew);
+
+        updatePreview();
+        setDirty(false);
+      }
+
+      async function openPost(slug: string) {
+        if (state.dirty && !confirm('当前有未保存的修改，确定要切换吗？')) return;
+
+        try {
+          const post = (await api(`/api/posts/${encodeURIComponent(slug)}`)) as PostDetail;
+          state.current = post;
+          state.isNew = false;
+          fillForm(post);
+          renderList();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      function newPost() {
+        if (state.dirty && !confirm('当前有未保存的修改，确定要新建吗？')) return;
+
+        state.current = null;
+        state.isNew = true;
+        fillForm(null);
+        ($('f-title') as HTMLInputElement).focus();
+      }
+
+      function updatePreview() {
+        const body = ($('f-body') as HTMLTextAreaElement).value;
+        $('preview').innerHTML = marked.parse(body || '') as string;
+      }
+
+      function setDirty(dirty: boolean) {
+        state.dirty = dirty;
+        $('dirty-hint').textContent = dirty ? '有未保存的修改' : '';
+      }
+
+      function collectForm() {
+        const tags = ($('f-tags') as HTMLInputElement).value
+          .split(/[,，]/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+
+        return {
+          title: ($('f-title') as HTMLInputElement).value.trim(),
+          description: ($('f-desc') as HTMLTextAreaElement).value.trim(),
+          pubDate: ($('f-date') as HTMLInputElement).value,
+          tags,
+          draft: ($('f-draft') as HTMLInputElement).checked,
+          body: ($('f-body') as HTMLTextAreaElement).value,
+          slug: ($('f-slug') as HTMLInputElement).value.trim(),
+        };
+      }
+
+      async function save() {
+        const payload = collectForm();
+
+        if (!payload.title) {
+          toast('请填写标题', 'error');
+          return;
+        }
+
+        try {
+          if (state.isNew) {
+            if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(payload.slug)) {
+              toast('文件名只能用小写字母、数字和连字符，例如 my-post', 'error');
+              return;
+            }
+            await api('/api/posts', { method: 'POST', body: JSON.stringify(payload) });
+            state.isNew = false;
+            toast('已创建，约 2 分钟后上线', 'success');
+          } else if (state.current) {
+            await api(`/api/posts/${encodeURIComponent(state.current.slug)}`, {
+              method: 'PUT',
+              body: JSON.stringify({ ...payload, sha: state.current.sha }),
+            });
+            toast('已保存，约 2 分钟后上线', 'success');
+          }
+
+          setDirty(false);
+          await loadPosts();
+
+          // 保存后重新读取，拿到新的 sha
+          const slug = state.current?.slug ?? payload.slug;
+          if (slug) {
+            state.current = (await api(`/api/posts/${encodeURIComponent(slug)}`)) as PostDetail;
+            fillForm(state.current);
+            renderList();
+          }
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      async function removeCurrent() {
+        if (!state.current || state.isNew) return;
+        if (!confirm(`确定删除《${state.current.title}》吗？此操作会从 GitHub 仓库移除该文件。`)) return;
+
+        try {
+          await api(`/api/posts/${encodeURIComponent(state.current.slug)}`, {
+            method: 'DELETE',
+            body: JSON.stringify({ sha: state.current.sha }),
+          });
+          toast('已删除', 'success');
+          state.current = null;
+          state.isNew = false;
+          $('editor-form').classList.add('hidden');
+          $('editor-empty').classList.remove('hidden');
+          await loadPosts();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      async function uploadImage(file: File) {
+        const form = new FormData();
+        form.append('file', file);
+
+        try {
+          const data = await api('/api/upload', { method: 'POST', body: form });
+          const textarea = $('f-body') as HTMLTextAreaElement;
+          const snippet = `![${file.name}](${data.markdownPath})\n`;
+          const start = textarea.selectionStart ?? textarea.value.length;
+          textarea.value = textarea.value.slice(0, start) + snippet + textarea.value.slice(start);
+          textarea.focus();
+          textarea.selectionStart = textarea.selectionEnd = start + snippet.length;
+          updatePreview();
+          setDirty(true);
+          toast('图片已插入', 'success');
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      }
+
+      /* ---------- 事件绑定 ---------- */
+
+      $('login-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const password = ($('password') as HTMLInputElement).value;
+
+        try {
+          await api('/api/login', { method: 'POST', body: JSON.stringify({ password }) });
+          ($('password') as HTMLInputElement).value = '';
+          showApp();
+          await loadPosts();
+          newPost();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        }
+      });
+
+      $('btn-logout').addEventListener('click', async () => {
+        try {
+          await api('/api/logout', { method: 'POST' });
+        } catch {
+          /* 忽略 */
+        }
+        location.reload();
+      });
+
+      $('btn-new').addEventListener('click', newPost);
+      $('btn-refresh').addEventListener('click', () => loadPosts().catch((e) => toast(e.message, 'error')));
+      $('btn-save').addEventListener('click', save);
+      $('btn-delete').addEventListener('click', removeCurrent);
+
+      $('f-body').addEventListener('input', () => {
+        updatePreview();
+        setDirty(true);
+      });
+
+      ['f-title', 'f-desc', 'f-date', 'f-tags', 'f-draft'].forEach((id) => {
+        $(id).addEventListener('input', () => setDirty(true));
+        $(id).addEventListener('change', () => setDirty(true));
+      });
+
+      $('btn-upload').addEventListener('click', () => ($('f-image') as HTMLInputElement).click());
+      $('f-image').addEventListener('change', (event) => {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (file) uploadImage(file);
+        input.value = '';
+      });
+
+      window.addEventListener('beforeunload', (event) => {
+        if (state.dirty) {
+          event.preventDefault();
+          event.returnValue = '';
+        }
+      });
+
+      /* ---------- 启动 ---------- */
+
+      (async () => {
+        try {
+          await loadPosts();
+          showApp();
+          newPost();
+        } catch {
+          showLogin();
+        }
+      })();
     </script>
   </body>
 </html>

@@ -102,7 +102,20 @@ frontmatter 字段定义：
 
 ---
 
-## 9. Git
+## 9. 服务端与安全
+
+- [Agent] 任何令牌、密码、会话密钥只从环境变量读取，**不得写进代码、注释、日志或提交记录**。
+- [Agent] 前端永远不接触 GitHub 令牌；所有 GitHub 调用经由 `functions/lib/github.ts`。
+- [Agent] 所有 `/api/*` 端点（除 `login` / `logout` / `health`）必须经过 `_middleware.ts` 的会话校验。
+- [Agent] 密码比较与会话签名校验使用常量时间比较，避免时序侧信道。
+- [Agent] 会话 Cookie 必须带 `HttpOnly`、`Secure`、`SameSite=Strict`。
+- [Review] 错误响应不泄露内部细节（不返回 GitHub 原始报文、不返回堆栈）。
+- [Agent] 用户输入必须校验：`slug` 只允许 `[a-z0-9-]`，图片只接受 `image/*` 且小于 5 MB。
+- [Agent] 写入文章时带上文件 sha；GitHub 返回 409 时明确提示「已被修改，请刷新」，不做静默覆盖。
+
+---
+
+## 10. Git
 
 - [Review] 提交信息遵循 Conventional Commits：`feat:` / `fix:` / `docs:` / `chore:` / `refactor:`，type 用英文，描述可中文。
 - [Review] 一次提交只做一件事；文章内容与代码改动分开提交。
@@ -113,11 +126,12 @@ frontmatter 字段定义：
 
 ---
 
-## 10. Review 自查表（提交前逐条过）
+## 11. Review 自查表（提交前逐条过）
 
 - [ ] 破坏性操作与环境变更均已获用户同意（R1 / R2）
 - [ ] 新依赖已核对许可证与维护状态，或复用了现有方案（R3）
 - [ ] 本次改动已提交（R5），或已说明为何暂不提交
+- [ ] 未在代码或提交中出现任何令牌、密码、密钥
 - [ ] `pnpm check` 无错误
 - [ ] `pnpm build` 成功，四个产物齐全（`index.html` / `rss.xml` / `sitemap-index.xml` / `pagefind/`）
 - [ ] 新增或修改的文章 frontmatter 通过 schema 校验
