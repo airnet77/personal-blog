@@ -32,6 +32,18 @@
       "deviceId": "0123456789abcdef0123456789abcdef",
       "ipHash": "12ca17b4",
       "reviewReason": "AI 暂不可用，转人工审核"
+    },
+    {
+      "id": "c_1792600078461_nj8f",
+      "author": "tester",
+      "content": "������� [����](https://example.com)",
+      "createdAt": 1792600078461,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "0123456789abcdef0123456789abcdef",
+      "ipHash": "12ca17b4",
+      "reviewReason": "不允许链接"
     }
   ]
 }
