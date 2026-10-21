@@ -2,7 +2,7 @@
 
 > 本文件会被 AI 编码助手在每次会话自动加载。**开启新会话时，先读完本文件与 [`rules.md`](./rules.md) 再动手。**
 >
-> 当前状态：**阶段 3 已完成（搜索 / RSS / SEO）+ 内容管理后台（Sveltia CMS）已接入** —— 下一步阶段 4：部署到 Cloudflare Pages（需要 GitHub 仓库地址）。
+> 当前状态：**阶段 4 已完成，站点已上线** → <https://airnet-blog.pages.dev>（Cloudflare Pages，Direct Upload 方式） —— 下一步阶段 5：验收与交接。
 
 ---
 
@@ -26,7 +26,7 @@
 | Sitemap | @astrojs/sitemap | 3.7.4 | 输出 `/sitemap-index.xml` |
 | 评论 | Giscus | 原生 script | 基于 GitHub Discussions，无服务器 |
 | 后台 | @sveltia/cms | 0.248.1 | 静态页面 + 令牌登录，直连 GitHub 仓库，无后端 |
-| 托管 | Cloudflare Pages | — | Git 集成，免费 `*.pages.dev` 子域 |
+| 托管 | Cloudflare Pages | — | Direct Upload（`wrangler pages deploy`），免费 `*.pages.dev` 子域 |
 
 升级任何依赖前先说明理由。Astro 主版本升级（如 v7 → v8）必须单独评估破坏性变更，不在日常改动里顺带升级。
 
