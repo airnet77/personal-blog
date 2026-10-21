@@ -8,6 +8,17 @@
       "createdAt": 1792598697653,
       "pinned": false,
       "hidden": false
+    },
+    {
+      "id": "c_1792601745273_jc3m",
+      "author": "online-ai-test",
+      "content": "这个 Astro 版本用着不错，请问图片是怎么优化的？",
+      "createdAt": 1792601745273,
+      "pinned": false,
+      "hidden": false,
+      "status": "visible",
+      "deviceId": "444401444401444401444401",
+      "ipHash": "496191e1"
     }
   ]
 }
