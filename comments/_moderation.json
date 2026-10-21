@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "devices": {
+    "eeee0000eeee0000eeee0000eeee0001": {
+      "firstSeen": 1792600749084,
+      "lastSeen": 1792600749084,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 0,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "12ca17b4"
+      ],
+      "recentStrikes": [],
+      "recentComments": [
+        1792600749084
+      ],
+      "lastAuthor": "panel-tester"
+    }
+  }
+}
