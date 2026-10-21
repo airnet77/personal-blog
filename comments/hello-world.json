@@ -1,4 +1,13 @@
 {
   "slug": "hello-world",
-  "comments": []
+  "comments": [
+    {
+      "id": "c_1792598697653_hlwd",
+      "author": "阿巴阿巴",
+      "content": "# 我是你好\nciaoll",
+      "createdAt": 1792598697653,
+      "pinned": false,
+      "hidden": false
+    }
+  ]
 }
