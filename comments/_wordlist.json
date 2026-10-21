@@ -76,7 +76,7 @@
       ]
     },
     "gambling": {
-      "enabled": false,
+      "enabled": true,
       "words": [
         "赌博",
         "博彩",
