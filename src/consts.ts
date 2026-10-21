@@ -3,9 +3,9 @@
  * 修改站点名称、简介、作者、地址时只改这里，不要散落在组件里。
  */
 
-export const SITE_TITLE = '我的博客';
+export const SITE_TITLE = 'airnet的博客';
 export const SITE_DESCRIPTION = '记录技术与生活';
-export const SITE_AUTHOR = '博主';
+export const SITE_AUTHOR = 'airnet';
 export const SITE_LANG = 'zh-CN';
 
 /**
@@ -31,17 +31,18 @@ export const SOCIAL_LINKS: { label: string; href: string }[] = [];
 /**
  * 评论（Giscus）配置。
  *
- * 暂未启用。等配好 GitHub 仓库的 Discussions 后：
- * 1. 到 https://giscus.app/zh-CN 填入仓库名，生成参数
- * 2. 把 enabled 改为 true，并填上 repo / repoId / categoryId
- * 3. 重新构建部署即可，无需改动其他代码
+ * 基于 GitHub Discussions，无服务器、免费。
+ * 评论存储在 https://github.com/airnet77/personal-blog/discussions
+ *
+ * 注意：发布评论需要 giscus App 已安装到该仓库。
+ * 安装地址：https://github.com/apps/giscus
  */
 export const GISCUS = {
-  enabled: false,
-  repo: '',
-  repoId: '',
-  category: 'Comments',
-  categoryId: '',
+  enabled: true,
+  repo: 'airnet77/personal-blog',
+  repoId: 'R_kgDOVSDWYA',
+  category: 'Announcements',
+  categoryId: 'DIC_kwDOVSDWYM4DJQw2',
   /** 评论主题，跟随站点的明暗模式 */
   theme: {
     light: 'light',
