@@ -10,18 +10,6 @@
       "hidden": false
     },
     {
-      "id": "c_1792601105783_5hlr",
-      "author": "live-test",
-      "content": "日配额测试第 1 条",
-      "createdAt": 1792601105783,
-      "pinned": false,
-      "hidden": false,
-      "status": "pending",
-      "deviceId": "222215222215222215222215",
-      "ipHash": "496191e1",
-      "reviewReason": "AI 暂不可用，转人工审核"
-    },
-    {
       "id": "c_1792601109104_knsz",
       "author": "live-test",
       "content": "日配额测试第 2 条",
