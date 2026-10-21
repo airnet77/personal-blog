@@ -44,6 +44,18 @@
       "deviceId": "222203222203222203222203",
       "ipHash": "496191e1",
       "reviewReason": "毒品"
+    },
+    {
+      "id": "c_1792601027271_w5b4",
+      "author": "live-test",
+      "content": "血腥砍杀视频",
+      "createdAt": 1792601027271,
+      "pinned": false,
+      "hidden": false,
+      "status": "rejected",
+      "deviceId": "222204222204222204222204",
+      "ipHash": "496191e1",
+      "reviewReason": "血腥暴力"
     }
   ]
 }
