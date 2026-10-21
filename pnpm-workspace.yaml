@@ -2,3 +2,9 @@ minimumReleaseAgeExclude:
   - '@astrojs/check@0.9.11'
   - astro@7.4.1
   - '@sveltia/cms@0.248.1'
+
+# 允许这些依赖运行安装脚本（否则 pnpm 会拦截，导致构建或部署失败）
+allowBuilds:
+  esbuild: true
+  workerd: true
+  sharp: true
