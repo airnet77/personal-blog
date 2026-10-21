@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "maxAuthor": 30,
-  "maxLength": 120,
+  "maxLength": 5000,
   "dailyLimit": 3,
   "burstLimit": 5,
   "burstWindowSec": 60,
@@ -17,7 +17,7 @@
   "aiModel": "@cf/meta/llama-3.1-8b-instruct",
   "aiFallback": "pending",
   "autoBlock": true,
-  "strikeLimit": 3,
+  "strikeLimit": 1,
   "blockDays": 7,
   "keepRejected": true,
   "maxRejectedPerPost": 200
