@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "devices": {
+    "444401444401444401444401": {
+      "firstSeen": 1792601746338,
+      "lastSeen": 1792601746338,
+      "total": 1,
+      "day": "2026-10-22",
+      "dayCount": 1,
+      "strikes": 0,
+      "blockedUntil": 0,
+      "ipHashes": [
+        "496191e1"
+      ],
+      "recentStrikes": [],
+      "recentComments": [
+        1792601746338
+      ],
+      "lastAuthor": "online-ai-test"
+    }
+  }
+}
